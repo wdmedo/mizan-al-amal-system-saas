@@ -1,13 +1,42 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState } from 'react';
+import Layout from '@/components/Layout';
+import Dashboard from '@/components/Dashboard';
+import ExpensesSection from '@/components/sections/ExpensesSection';
+import PendingCustomersSection from '@/components/sections/PendingCustomersSection';
+import CompletedCustomersSection from '@/components/sections/CompletedCustomersSection';
+import EmployeesSection from '@/components/sections/EmployeesSection';
+import CoveragesSection from '@/components/sections/CoveragesSection';
+import AccountsSection from '@/components/sections/AccountsSection';
 
 const Index = () => {
+  const [activeSection, setActiveSection] = useState('dashboard');
+
+  const renderSection = () => {
+    switch (activeSection) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'expenses':
+        return <ExpensesSection />;
+      case 'pending-customers':
+        return <PendingCustomersSection />;
+      case 'completed-customers':
+        return <CompletedCustomersSection />;
+      case 'employees':
+        return <EmployeesSection />;
+      case 'coverages':
+        return <CoveragesSection />;
+      case 'accounts':
+        return <AccountsSection />;
+      default:
+        return <Dashboard />;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <Layout activeSection={activeSection} onSectionChange={setActiveSection}>
+      {renderSection()}
+    </Layout>
   );
 };
 
