@@ -10,6 +10,42 @@ import {
   Account 
 } from '@/types/accounting';
 
+// Helper function to transform database row to PendingCustomer
+const transformPendingCustomer = (row: any): PendingCustomer => ({
+  id: row.id,
+  name: row.name,
+  idNumber: row.id_number,
+  phoneNumber: row.phone_number,
+  payments: row.payments?.map((payment: any) => ({
+    id: payment.id,
+    amount: payment.amount,
+    source: payment.source
+  })) || []
+});
+
+// Helper function to transform database row to CompletedCustomer
+const transformCompletedCustomer = (row: any): CompletedCustomer => ({
+  id: row.id,
+  name: row.name,
+  idNumber: row.id_number,
+  phoneNumber: row.phone_number,
+  totalPayment: row.total_payment,
+  fixedInterest: row.fixed_interest,
+  amount: row.amount,
+  brokerPercentage: row.broker_percentage,
+  productDifference: row.product_difference,
+  netProfit: row.net_profit
+});
+
+// Helper function to transform database row to Coverage
+const transformCoverage = (row: any): Coverage => ({
+  id: row.id,
+  amount: row.amount,
+  receivedFrom: row.received_from,
+  receivedBy: row.received_by,
+  remaining: row.remaining
+});
+
 // Expenses
 export const getExpenses = async (): Promise<Expense[]> => {
   const { data, error } = await supabase
@@ -52,18 +88,24 @@ export const getPendingCustomers = async (): Promise<PendingCustomer[]> => {
     .order('created_at', { ascending: false });
   
   if (error) throw error;
-  return customers || [];
+  return customers?.map(transformPendingCustomer) || [];
 };
 
 export const addPendingCustomer = async (customer: Omit<PendingCustomer, 'id' | 'payments'>): Promise<PendingCustomer> => {
+  const dbCustomer = {
+    name: customer.name,
+    id_number: customer.idNumber,
+    phone_number: customer.phoneNumber
+  };
+
   const { data, error } = await supabase
     .from('pending_customers')
-    .insert(customer)
+    .insert(dbCustomer)
     .select()
     .single();
   
   if (error) throw error;
-  return { ...data, payments: [] };
+  return transformPendingCustomer({ ...data, payments: [] });
 };
 
 export const deletePendingCustomer = async (id: string): Promise<void> => {
@@ -104,18 +146,30 @@ export const getCompletedCustomers = async (): Promise<CompletedCustomer[]> => {
     .order('created_at', { ascending: false });
   
   if (error) throw error;
-  return data || [];
+  return data?.map(transformCompletedCustomer) || [];
 };
 
 export const addCompletedCustomer = async (customer: Omit<CompletedCustomer, 'id'>): Promise<CompletedCustomer> => {
+  const dbCustomer = {
+    name: customer.name,
+    id_number: customer.idNumber,
+    phone_number: customer.phoneNumber,
+    total_payment: customer.totalPayment,
+    fixed_interest: customer.fixedInterest,
+    amount: customer.amount,
+    broker_percentage: customer.brokerPercentage,
+    product_difference: customer.productDifference,
+    net_profit: customer.netProfit
+  };
+
   const { data, error } = await supabase
     .from('completed_customers')
-    .insert(customer)
+    .insert(dbCustomer)
     .select()
     .single();
   
   if (error) throw error;
-  return data;
+  return transformCompletedCustomer(data);
 };
 
 export const deleteCompletedCustomer = async (id: string): Promise<void> => {
@@ -166,18 +220,25 @@ export const getCoverages = async (): Promise<Coverage[]> => {
     .order('created_at', { ascending: false });
   
   if (error) throw error;
-  return data || [];
+  return data?.map(transformCoverage) || [];
 };
 
 export const addCoverage = async (coverage: Omit<Coverage, 'id'>): Promise<Coverage> => {
+  const dbCoverage = {
+    amount: coverage.amount,
+    received_from: coverage.receivedFrom,
+    received_by: coverage.receivedBy,
+    remaining: coverage.remaining
+  };
+
   const { data, error } = await supabase
     .from('coverages')
-    .insert(coverage)
+    .insert(dbCoverage)
     .select()
     .single();
   
   if (error) throw error;
-  return data;
+  return transformCoverage(data);
 };
 
 export const deleteCoverage = async (id: string): Promise<void> => {
