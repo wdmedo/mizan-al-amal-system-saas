@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { useAccountingData } from '@/hooks/useAccountingData';
 import { Coverage } from '@/types/accounting';
 
 const CoveragesSection = () => {
-  const { data, updateCoverages } = useAccountingData();
+  const { data, addCoverage, deleteCoverage } = useAccountingData();
   const [newCoverage, setNewCoverage] = useState({
     amount: '',
     receivedFrom: '',
@@ -19,21 +18,20 @@ const CoveragesSection = () => {
 
   const handleAddCoverage = () => {
     if (newCoverage.amount && newCoverage.receivedFrom && newCoverage.receivedBy) {
-      const coverage: Coverage = {
-        id: Date.now().toString(),
+      const coverage = {
         amount: parseFloat(newCoverage.amount),
         receivedFrom: newCoverage.receivedFrom,
         receivedBy: newCoverage.receivedBy,
         remaining: parseFloat(newCoverage.remaining) || 0
       };
       
-      updateCoverages([...data.coverages, coverage]);
+      addCoverage(coverage);
       setNewCoverage({ amount: '', receivedFrom: '', receivedBy: '', remaining: '' });
     }
   };
 
   const handleDeleteCoverage = (id: string) => {
-    updateCoverages(data.coverages.filter(coverage => coverage.id !== id));
+    deleteCoverage(id);
   };
 
   const getTotalCoverages = () => {
