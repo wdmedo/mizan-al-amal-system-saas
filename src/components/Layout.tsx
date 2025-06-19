@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Home, TrendingDown, Users, UserCheck, Briefcase, Shield, FileText } from 'lucide-react';
@@ -36,8 +35,8 @@ const Layout = ({ children, activeSection, onSectionChange }: LayoutProps) => {
             >
               {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              نظام المحاسبة الشامل
+            <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              نظام المحاسبة الشامل لمؤسسة تمام السداد
             </h1>
           </div>
         </div>
