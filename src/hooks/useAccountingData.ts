@@ -1,68 +1,247 @@
 
 import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AccountingData } from '@/types/accounting';
-
-const initialData: AccountingData = {
-  expenses: [],
-  pendingCustomers: [],
-  completedCustomers: [],
-  employees: [],
-  coverages: [],
-  accounts: []
-};
+import * as db from '@/services/database';
+import { useToast } from '@/hooks/use-toast';
 
 export const useAccountingData = () => {
-  const [data, setData] = useState<AccountingData>(initialData);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const savedData = localStorage.getItem('accountingData');
-    if (savedData) {
-      setData(JSON.parse(savedData));
+  // Fetch all data using React Query
+  const { data: expenses = [] } = useQuery({
+    queryKey: ['expenses'],
+    queryFn: db.getExpenses,
+  });
+
+  const { data: pendingCustomers = [] } = useQuery({
+    queryKey: ['pending-customers'],
+    queryFn: db.getPendingCustomers,
+  });
+
+  const { data: completedCustomers = [] } = useQuery({
+    queryKey: ['completed-customers'],
+    queryFn: db.getCompletedCustomers,
+  });
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: db.getEmployees,
+  });
+
+  const { data: coverages = [] } = useQuery({
+    queryKey: ['coverages'],
+    queryFn: db.getCoverages,
+  });
+
+  const { data: accounts = [] } = useQuery({
+    queryKey: ['accounts'],
+    queryFn: db.getAccounts,
+  });
+
+  const data: AccountingData = {
+    expenses,
+    pendingCustomers,
+    completedCustomers,
+    employees,
+    coverages,
+    accounts
+  };
+
+  // Mutations for expenses
+  const addExpenseMutation = useMutation({
+    mutationFn: db.addExpense,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast({ title: "تمت إضافة المصروف بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في إضافة المصروف", variant: "destructive" });
     }
-  }, []);
+  });
 
-  const saveData = (newData: AccountingData) => {
-    setData(newData);
-    localStorage.setItem('accountingData', JSON.stringify(newData));
-  };
+  const deleteExpenseMutation = useMutation({
+    mutationFn: db.deleteExpense,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast({ title: "تم حذف المصروف بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في حذف المصروف", variant: "destructive" });
+    }
+  });
 
-  const updateExpenses = (expenses: any[]) => {
-    const newData = { ...data, expenses };
-    saveData(newData);
-  };
+  // Mutations for pending customers
+  const addPendingCustomerMutation = useMutation({
+    mutationFn: db.addPendingCustomer,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pending-customers'] });
+      toast({ title: "تمت إضافة العميل بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في إضافة العميل", variant: "destructive" });
+    }
+  });
 
-  const updatePendingCustomers = (pendingCustomers: any[]) => {
-    const newData = { ...data, pendingCustomers };
-    saveData(newData);
-  };
+  const deletePendingCustomerMutation = useMutation({
+    mutationFn: db.deletePendingCustomer,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pending-customers'] });
+      toast({ title: "تم حذف العميل بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في حذف العميل", variant: "destructive" });
+    }
+  });
 
-  const updateCompletedCustomers = (completedCustomers: any[]) => {
-    const newData = { ...data, completedCustomers };
-    saveData(newData);
-  };
+  // Mutations for payments
+  const addPaymentMutation = useMutation({
+    mutationFn: db.addPayment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pending-customers'] });
+      toast({ title: "تمت إضافة الدفعة بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في إضافة الدفعة", variant: "destructive" });
+    }
+  });
 
-  const updateEmployees = (employees: any[]) => {
-    const newData = { ...data, employees };
-    saveData(newData);
-  };
+  const deletePaymentMutation = useMutation({
+    mutationFn: db.deletePayment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pending-customers'] });
+      toast({ title: "تم حذف الدفعة بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في حذف الدفعة", variant: "destructive" });
+    }
+  });
 
-  const updateCoverages = (coverages: any[]) => {
-    const newData = { ...data, coverages };
-    saveData(newData);
-  };
+  // Mutations for completed customers
+  const addCompletedCustomerMutation = useMutation({
+    mutationFn: db.addCompletedCustomer,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['completed-customers'] });
+      toast({ title: "تمت إضافة العميل الخالص بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في إضافة العميل الخالص", variant: "destructive" });
+    }
+  });
 
-  const updateAccounts = (accounts: any[]) => {
-    const newData = { ...data, accounts };
-    saveData(newData);
-  };
+  const deleteCompletedCustomerMutation = useMutation({
+    mutationFn: db.deleteCompletedCustomer,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['completed-customers'] });
+      toast({ title: "تم حذف العميل الخالص بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في حذف العميل الخالص", variant: "destructive" });
+    }
+  });
+
+  // Mutations for employees
+  const addEmployeeMutation = useMutation({
+    mutationFn: db.addEmployee,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast({ title: "تمت إضافة الموظف بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في إضافة الموظف", variant: "destructive" });
+    }
+  });
+
+  const deleteEmployeeMutation = useMutation({
+    mutationFn: db.deleteEmployee,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast({ title: "تم حذف الموظف بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في حذف الموظف", variant: "destructive" });
+    }
+  });
+
+  // Mutations for coverages
+  const addCoverageMutation = useMutation({
+    mutationFn: db.addCoverage,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coverages'] });
+      toast({ title: "تمت إضافة التغطية بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في إضافة التغطية", variant: "destructive" });
+    }
+  });
+
+  const deleteCoverageMutation = useMutation({
+    mutationFn: db.deleteCoverage,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coverages'] });
+      toast({ title: "تم حذف التغطية بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في حذف التغطية", variant: "destructive" });
+    }
+  });
+
+  // Mutations for accounts
+  const addAccountMutation = useMutation({
+    mutationFn: db.addAccount,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      toast({ title: "تمت إضافة الحساب بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في إضافة الحساب", variant: "destructive" });
+    }
+  });
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: db.deleteAccount,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      toast({ title: "تم حذف الحساب بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في حذف الحساب", variant: "destructive" });
+    }
+  });
 
   return {
     data,
-    updateExpenses,
-    updatePendingCustomers,
-    updateCompletedCustomers,
-    updateEmployees,
-    updateCoverages,
-    updateAccounts
+    // Expense functions
+    updateExpenses: (expenses: any[]) => addExpenseMutation.mutate(expenses[expenses.length - 1]),
+    addExpense: (expense: any) => addExpenseMutation.mutate(expense),
+    deleteExpense: (id: string) => deleteExpenseMutation.mutate(id),
+    
+    // Pending customer functions
+    updatePendingCustomers: (customers: any[]) => addPendingCustomerMutation.mutate(customers[customers.length - 1]),
+    addPendingCustomer: (customer: any) => addPendingCustomerMutation.mutate(customer),
+    deletePendingCustomer: (id: string) => deletePendingCustomerMutation.mutate(id),
+    addPayment: (payment: any) => addPaymentMutation.mutate(payment),
+    deletePayment: (id: string) => deletePaymentMutation.mutate(id),
+    
+    // Completed customer functions
+    updateCompletedCustomers: (customers: any[]) => addCompletedCustomerMutation.mutate(customers[customers.length - 1]),
+    addCompletedCustomer: (customer: any) => addCompletedCustomerMutation.mutate(customer),
+    deleteCompletedCustomer: (id: string) => deleteCompletedCustomerMutation.mutate(id),
+    
+    // Employee functions
+    updateEmployees: (employees: any[]) => addEmployeeMutation.mutate(employees[employees.length - 1]),
+    addEmployee: (employee: any) => addEmployeeMutation.mutate(employee),
+    deleteEmployee: (id: string) => deleteEmployeeMutation.mutate(id),
+    
+    // Coverage functions
+    updateCoverages: (coverages: any[]) => addCoverageMutation.mutate(coverages[coverages.length - 1]),
+    addCoverage: (coverage: any) => addCoverageMutation.mutate(coverage),
+    deleteCoverage: (id: string) => deleteCoverageMutation.mutate(id),
+    
+    // Account functions
+    updateAccounts: (accounts: any[]) => addAccountMutation.mutate(accounts[accounts.length - 1]),
+    addAccount: (account: any) => addAccountMutation.mutate(account),
+    deleteAccount: (id: string) => deleteAccountMutation.mutate(id)
   };
 };

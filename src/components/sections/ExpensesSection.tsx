@@ -7,10 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, TrendingDown } from 'lucide-react';
 import { useAccountingData } from '@/hooks/useAccountingData';
-import { Expense } from '@/types/accounting';
 
 const ExpensesSection = () => {
-  const { data, updateExpenses } = useAccountingData();
+  const { data, addExpense, deleteExpense } = useAccountingData();
   const [newExpense, setNewExpense] = useState({
     date: new Date().toISOString().split('T')[0],
     amount: '',
@@ -19,24 +18,18 @@ const ExpensesSection = () => {
 
   const handleAddExpense = () => {
     if (newExpense.amount && newExpense.description) {
-      const expense: Expense = {
-        id: Date.now().toString(),
+      addExpense({
         date: newExpense.date,
         amount: parseFloat(newExpense.amount),
         description: newExpense.description
-      };
+      });
       
-      updateExpenses([...data.expenses, expense]);
       setNewExpense({
         date: new Date().toISOString().split('T')[0],
         amount: '',
         description: ''
       });
     }
-  };
-
-  const handleDeleteExpense = (id: string) => {
-    updateExpenses(data.expenses.filter(expense => expense.id !== id));
   };
 
   const totalExpenses = data.expenses.reduce((sum, expense) => sum + expense.amount, 0);
@@ -149,7 +142,7 @@ const ExpensesSection = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleDeleteExpense(expense.id)}
+                    onClick={() => deleteExpense(expense.id)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />

@@ -6,10 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2, Briefcase, Users } from 'lucide-react';
 import { useAccountingData } from '@/hooks/useAccountingData';
-import { Employee } from '@/types/accounting';
 
 const EmployeesSection = () => {
-  const { data, updateEmployees } = useAccountingData();
+  const { data, addEmployee, deleteEmployee } = useAccountingData();
   const [newEmployee, setNewEmployee] = useState({
     name: '',
     salary: '',
@@ -18,20 +17,14 @@ const EmployeesSection = () => {
 
   const handleAddEmployee = () => {
     if (newEmployee.name && newEmployee.salary) {
-      const employee: Employee = {
-        id: Date.now().toString(),
+      addEmployee({
         name: newEmployee.name,
         salary: parseFloat(newEmployee.salary),
         advances: parseFloat(newEmployee.advances) || 0
-      };
+      });
       
-      updateEmployees([...data.employees, employee]);
       setNewEmployee({ name: '', salary: '', advances: '' });
     }
-  };
-
-  const handleDeleteEmployee = (id: string) => {
-    updateEmployees(data.employees.filter(employee => employee.id !== id));
   };
 
   const getTotalSalaries = () => {
@@ -182,7 +175,7 @@ const EmployeesSection = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDeleteEmployee(employee.id)}
+                      onClick={() => deleteEmployee(employee.id)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />

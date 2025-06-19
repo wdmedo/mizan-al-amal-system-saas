@@ -9,7 +9,200 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      accounts: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          balance: number
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      completed_customers: {
+        Row: {
+          amount: number
+          broker_percentage: number
+          created_at: string
+          fixed_interest: number
+          id: string
+          id_number: string
+          name: string
+          net_profit: number
+          phone_number: string
+          product_difference: number
+          total_payment: number
+        }
+        Insert: {
+          amount: number
+          broker_percentage: number
+          created_at?: string
+          fixed_interest: number
+          id?: string
+          id_number: string
+          name: string
+          net_profit: number
+          phone_number: string
+          product_difference: number
+          total_payment: number
+        }
+        Update: {
+          amount?: number
+          broker_percentage?: number
+          created_at?: string
+          fixed_interest?: number
+          id?: string
+          id_number?: string
+          name?: string
+          net_profit?: number
+          phone_number?: string
+          product_difference?: number
+          total_payment?: number
+        }
+        Relationships: []
+      }
+      coverages: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          received_by: string
+          received_from: string
+          remaining: number
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          received_by: string
+          received_from: string
+          remaining: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          received_by?: string
+          received_from?: string
+          remaining?: number
+        }
+        Relationships: []
+      }
+      employees: {
+        Row: {
+          advances: number
+          created_at: string
+          id: string
+          name: string
+          salary: number
+        }
+        Insert: {
+          advances?: number
+          created_at?: string
+          id?: string
+          name: string
+          salary: number
+        }
+        Update: {
+          advances?: number
+          created_at?: string
+          id?: string
+          name?: string
+          salary?: number
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          description: string
+          id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date: string
+          description: string
+          id?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_id: string | null
+          id: string
+          source: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          source: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "pending_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pending_customers: {
+        Row: {
+          created_at: string
+          id: string
+          id_number: string
+          name: string
+          phone_number: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          id_number: string
+          name: string
+          phone_number: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          id_number?: string
+          name?: string
+          phone_number?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

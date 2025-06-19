@@ -6,10 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2, FileText, TrendingUp, TrendingDown } from 'lucide-react';
 import { useAccountingData } from '@/hooks/useAccountingData';
-import { Account } from '@/types/accounting';
 
 const AccountsSection = () => {
-  const { data, updateAccounts } = useAccountingData();
+  const { data, addAccount, deleteAccount } = useAccountingData();
   const [newAccount, setNewAccount] = useState({
     name: '',
     balance: ''
@@ -17,19 +16,13 @@ const AccountsSection = () => {
 
   const handleAddAccount = () => {
     if (newAccount.name && newAccount.balance) {
-      const account: Account = {
-        id: Date.now().toString(),
+      addAccount({
         name: newAccount.name,
         balance: parseFloat(newAccount.balance)
-      };
+      });
       
-      updateAccounts([...data.accounts, account]);
       setNewAccount({ name: '', balance: '' });
     }
-  };
-
-  const handleDeleteAccount = (id: string) => {
-    updateAccounts(data.accounts.filter(account => account.id !== id));
   };
 
   const getTotalBalance = () => {
@@ -184,7 +177,7 @@ const AccountsSection = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDeleteAccount(account.id)}
+                      onClick={() => deleteAccount(account.id)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />
