@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AccountingData } from '@/types/accounting';
 import * as db from '@/services/database';
@@ -213,34 +212,28 @@ export const useAccountingData = () => {
   return {
     data,
     // Expense functions
-    updateExpenses: (expenses: any[]) => addExpenseMutation.mutate(expenses[expenses.length - 1]),
     addExpense: (expense: any) => addExpenseMutation.mutate(expense),
     deleteExpense: (id: string) => deleteExpenseMutation.mutate(id),
     
     // Pending customer functions
-    updatePendingCustomers: (customers: any[]) => addPendingCustomerMutation.mutate(customers[customers.length - 1]),
     addPendingCustomer: (customer: any) => addPendingCustomerMutation.mutate(customer),
     deletePendingCustomer: (id: string) => deletePendingCustomerMutation.mutate(id),
     addPayment: (payment: any) => addPaymentMutation.mutate(payment),
     deletePayment: (id: string) => deletePaymentMutation.mutate(id),
     
     // Completed customer functions
-    updateCompletedCustomers: (customers: any[]) => addCompletedCustomerMutation.mutate(customers[customers.length - 1]),
     addCompletedCustomer: (customer: any) => addCompletedCustomerMutation.mutate(customer),
     deleteCompletedCustomer: (id: string) => deleteCompletedCustomerMutation.mutate(id),
     
     // Employee functions
-    updateEmployees: (employees: any[]) => addEmployeeMutation.mutate(employees[employees.length - 1]),
     addEmployee: (employee: any) => addEmployeeMutation.mutate(employee),
     deleteEmployee: (id: string) => deleteEmployeeMutation.mutate(id),
     
     // Coverage functions
-    updateCoverages: (coverages: any[]) => addCoverageMutation.mutate(coverages[coverages.length - 1]),
     addCoverage: (coverage: any) => addCoverageMutation.mutate(coverage),
     deleteCoverage: (id: string) => deleteCoverageMutation.mutate(id),
     
     // Account functions
-    updateAccounts: (accounts: any[]) => addAccountMutation.mutate(accounts[accounts.length - 1]),
     addAccount: (account: any) => addAccountMutation.mutate(account),
     deleteAccount: (id: string) => deleteAccountMutation.mutate(id)
   };

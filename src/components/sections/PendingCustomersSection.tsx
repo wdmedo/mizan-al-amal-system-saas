@@ -9,7 +9,7 @@ import { useAccountingData } from '@/hooks/useAccountingData';
 import { PendingCustomer, Payment } from '@/types/accounting';
 
 const PendingCustomersSection = () => {
-  const { data, updatePendingCustomers } = useAccountingData();
+  const { data, addPendingCustomer, deletePendingCustomer, addPayment, deletePayment } = useAccountingData();
   const [newCustomer, setNewCustomer] = useState({
     name: '',
     idNumber: '',
@@ -23,49 +23,28 @@ const PendingCustomersSection = () => {
 
   const handleAddCustomer = () => {
     if (newCustomer.name && newCustomer.idNumber && newCustomer.phoneNumber) {
-      const customer: PendingCustomer = {
-        id: Date.now().toString(),
-        name: newCustomer.name,
-        idNumber: newCustomer.idNumber,
-        phoneNumber: newCustomer.phoneNumber,
-        payments: []
-      };
-      
-      updatePendingCustomers([...data.pendingCustomers, customer]);
+      addPendingCustomer(newCustomer);
       setNewCustomer({ name: '', idNumber: '', phoneNumber: '' });
     }
   };
 
   const handleAddPayment = () => {
     if (newPayment.customerId && newPayment.amount && newPayment.source) {
-      const payment: Payment = {
-        id: Date.now().toString(),
+      addPayment({
+        customerId: newPayment.customerId,
         amount: parseFloat(newPayment.amount),
         source: newPayment.source
-      };
-      
-      const updatedCustomers = data.pendingCustomers.map(customer => 
-        customer.id === newPayment.customerId 
-          ? { ...customer, payments: [...customer.payments, payment] }
-          : customer
-      );
-      
-      updatePendingCustomers(updatedCustomers);
+      });
       setNewPayment({ customerId: '', amount: '', source: '' });
     }
   };
 
   const handleDeleteCustomer = (id: string) => {
-    updatePendingCustomers(data.pendingCustomers.filter(customer => customer.id !== id));
+    deletePendingCustomer(id);
   };
 
-  const handleDeletePayment = (customerId: string, paymentId: string) => {
-    const updatedCustomers = data.pendingCustomers.map(customer => 
-      customer.id === customerId 
-        ? { ...customer, payments: customer.payments.filter(payment => payment.id !== paymentId) }
-        : customer
-    );
-    updatePendingCustomers(updatedCustomers);
+  const handleDeletePayment = (paymentId: string) => {
+    deletePayment(paymentId);
   };
 
   const getCustomerTotal = (customer: PendingCustomer) => {
@@ -264,7 +243,7 @@ const PendingCustomersSection = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDeletePayment(customer.id, payment.id)}
+                          onClick={() => handleDeletePayment(payment.id)}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <Trash2 className="h-4 w-4" />

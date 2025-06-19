@@ -118,15 +118,25 @@ export const deletePendingCustomer = async (id: string): Promise<void> => {
 };
 
 // Payments
-export const addPayment = async (payment: Omit<Payment, 'id'>): Promise<Payment> => {
+export const addPayment = async (payment: Omit<Payment, 'id'> & { customerId: string }): Promise<Payment> => {
+  const dbPayment = {
+    amount: payment.amount,
+    source: payment.source,
+    customer_id: payment.customerId
+  };
+
   const { data, error } = await supabase
     .from('payments')
-    .insert(payment)
+    .insert(dbPayment)
     .select()
     .single();
   
   if (error) throw error;
-  return data;
+  return {
+    id: data.id,
+    amount: data.amount,
+    source: data.source
+  };
 };
 
 export const deletePayment = async (id: string): Promise<void> => {

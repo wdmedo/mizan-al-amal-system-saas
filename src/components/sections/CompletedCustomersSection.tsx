@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { useAccountingData } from '@/hooks/useAccountingData';
 import { CompletedCustomer } from '@/types/accounting';
 
 const CompletedCustomersSection = () => {
-  const { data, updateCompletedCustomers } = useAccountingData();
+  const { data, addCompletedCustomer, deleteCompletedCustomer } = useAccountingData();
   const [newCustomer, setNewCustomer] = useState({
     name: '',
     idNumber: '',
@@ -28,13 +28,13 @@ const CompletedCustomersSection = () => {
     const brokerPercentage = parseFloat(customer.brokerPercentage) || 0;
     const productDifference = parseFloat(customer.productDifference) || 0;
     
-    return totalPayment + fixedInterest - amount - (amount * brokerPercentage / 100) + productDifference;
+    // الصافي = السداد + الفائدة - فائدة الوسيط - فرق السلعة
+    return totalPayment + fixedInterest - (amount * brokerPercentage / 100) - productDifference;
   };
 
   const handleAddCustomer = () => {
     if (newCustomer.name && newCustomer.idNumber && newCustomer.phoneNumber) {
-      const customer: CompletedCustomer = {
-        id: Date.now().toString(),
+      const customer: Omit<CompletedCustomer, 'id'> = {
         name: newCustomer.name,
         idNumber: newCustomer.idNumber,
         phoneNumber: newCustomer.phoneNumber,
@@ -46,7 +46,7 @@ const CompletedCustomersSection = () => {
         netProfit: calculateNetProfit(newCustomer)
       };
       
-      updateCompletedCustomers([...data.completedCustomers, customer]);
+      addCompletedCustomer(customer);
       setNewCustomer({
         name: '',
         idNumber: '',
@@ -61,7 +61,7 @@ const CompletedCustomersSection = () => {
   };
 
   const handleDeleteCustomer = (id: string) => {
-    updateCompletedCustomers(data.completedCustomers.filter(customer => customer.id !== id));
+    deleteCompletedCustomer(id);
   };
 
   const getTotalNetProfit = () => {
@@ -82,6 +82,9 @@ const CompletedCustomersSection = () => {
           العملاء الخالصين
         </h2>
         <p className="text-gray-600">إدارة العملاء المكتملين وحساب الأرباح النهائية</p>
+        <p className="text-sm text-gray-500 mt-2">
+          معادلة الحساب: السداد + الفائدة - فائدة الوسيط - فرق السلعة = الصافي
+        </p>
       </div>
 
       {/* Total Net Profit */}
@@ -145,7 +148,7 @@ const CompletedCustomersSection = () => {
           {/* Financial Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="totalPayment">إجمالي سداد العميل</Label>
+              <Label htmlFor="totalPayment">إجمالي السداد</Label>
               <Input
                 id="totalPayment"
                 type="number"
@@ -165,7 +168,7 @@ const CompletedCustomersSection = () => {
               />
             </div>
             <div>
-              <Label htmlFor="amount">المبلغ</Label>
+              <Label htmlFor="amount">المبلغ الأساسي</Label>
               <Input
                 id="amount"
                 type="number"
@@ -262,16 +265,16 @@ const CompletedCustomersSection = () => {
                     <div className="font-semibold text-green-600">{formatCurrency(customer.fixedInterest)}</div>
                   </div>
                   <div>
-                    <div className="text-gray-600">المبلغ</div>
-                    <div className="font-semibold text-red-600">{formatCurrency(customer.amount)}</div>
+                    <div className="text-gray-600">المبلغ الأساسي</div>
+                    <div className="font-semibold text-gray-600">{formatCurrency(customer.amount)}</div>
                   </div>
                   <div>
-                    <div className="text-gray-600">نسبة الوسيط</div>
-                    <div className="font-semibold text-orange-600">{customer.brokerPercentage}%</div>
+                    <div className="text-gray-600">فائدة الوسيط</div>
+                    <div className="font-semibold text-red-600">{formatCurrency(customer.amount * customer.brokerPercentage / 100)}</div>
                   </div>
                   <div>
                     <div className="text-gray-600">فرق السلعة</div>
-                    <div className="font-semibold text-purple-600">{formatCurrency(customer.productDifference)}</div>
+                    <div className="font-semibold text-red-600">{formatCurrency(customer.productDifference)}</div>
                   </div>
                   <div className="md:col-span-3 lg:col-span-1">
                     <div className="text-gray-600">الصافي</div>
