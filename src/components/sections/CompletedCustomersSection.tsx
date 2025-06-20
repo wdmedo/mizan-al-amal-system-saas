@@ -21,13 +21,12 @@ const CompletedCustomersSection = () => {
   });
 
   const calculateNetProfit = (customer: any) => {
-    const amount = parseFloat(customer.amount) || 0;
     const fixedInterest = parseFloat(customer.fixedInterest) || 0;
     const brokerInterest = parseFloat(customer.brokerInterest) || 0;
     const productDifference = parseFloat(customer.productDifference) || 0;
     
-    // الصافي = المبلغ الأساسي + الفائدة الثابتة - فائدة الوسيط - فرق السلعة
-    return amount + fixedInterest - brokerInterest - productDifference;
+    // صافي الربح = الفائدة الثابتة - فائدة الوسيط - فرق السلعة
+    return fixedInterest - brokerInterest - productDifference;
   };
 
   const handleAddCustomer = () => {
@@ -64,6 +63,10 @@ const CompletedCustomersSection = () => {
     return data.completedCustomers.reduce((sum, customer) => sum + customer.netProfit, 0);
   };
 
+  const getTotalCapital = () => {
+    return data.completedCustomers.reduce((sum, customer) => sum + customer.amount, 0);
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ar-SA', {
       style: 'currency',
@@ -79,27 +82,49 @@ const CompletedCustomersSection = () => {
         </h2>
         <p className="text-gray-600">إدارة العملاء المكتملين وحساب الأرباح النهائية</p>
         <p className="text-sm text-gray-500 mt-2">
-          معادلة الحساب: المبلغ الأساسي + الفائدة الثابتة - فائدة الوسيط - فرق السلعة = الصافي
+          معادلة الحساب: صافي الربح = الفائدة الثابتة - فائدة الوسيط - فرق السلعة
+        </p>
+        <p className="text-xs text-gray-400 mt-1">
+          المبلغ الأساسي يُعتبر رأس مال منفصل يعود إلى الحسابات الأساسية
         </p>
       </div>
 
-      {/* Total Net Profit */}
-      <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-0 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-700">
-            <UserCheck className="h-5 w-5" />
-            صافي أرباح العملاء الخالصين
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-green-600 mb-2">
-              {formatCurrency(getTotalNetProfit())}
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-green-700">
+              <UserCheck className="h-5 w-5" />
+              صافي أرباح العملاء الخالصين
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-green-600 mb-2">
+                {formatCurrency(getTotalNetProfit())}
+              </div>
+              <p className="text-gray-600">إجمالي صافي الأرباح</p>
             </div>
-            <p className="text-gray-600">إجمالي الأرباح الصافية</p>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-700">
+              <Calculator className="h-5 w-5" />
+              رأس المال (المبالغ الأساسية)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-blue-600 mb-2">
+                {formatCurrency(getTotalCapital())}
+              </div>
+              <p className="text-gray-600">إجمالي رأس المال</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Add New Customer */}
       <Card className="border-0 shadow-lg">
@@ -144,7 +169,7 @@ const CompletedCustomersSection = () => {
           {/* Financial Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="amount">المبلغ الأساسي</Label>
+              <Label htmlFor="amount">المبلغ الأساسي (رأس المال)</Label>
               <Input
                 id="amount"
                 type="number"
@@ -185,7 +210,7 @@ const CompletedCustomersSection = () => {
             </div>
             <div className="flex items-end md:col-span-2 lg:col-span-2">
               <div className="w-full">
-                <Label>الصافي المتوقع</Label>
+                <Label>صافي الربح المتوقع</Label>
                 <div className="p-2 bg-gray-100 rounded-md text-center font-semibold text-green-600">
                   {formatCurrency(calculateNetProfit(newCustomer))}
                 </div>
@@ -243,7 +268,7 @@ const CompletedCustomersSection = () => {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-sm">
                   <div>
-                    <div className="text-gray-600">المبلغ الأساسي</div>
+                    <div className="text-gray-600">رأس المال</div>
                     <div className="font-semibold text-blue-600">{formatCurrency(customer.amount)}</div>
                   </div>
                   <div>
@@ -259,7 +284,7 @@ const CompletedCustomersSection = () => {
                     <div className="font-semibold text-red-600">{formatCurrency(customer.productDifference)}</div>
                   </div>
                   <div className="md:col-span-3 lg:col-span-1">
-                    <div className="text-gray-600">الصافي</div>
+                    <div className="text-gray-600">صافي الربح</div>
                     <div className="font-bold text-green-600 text-lg">{formatCurrency(customer.netProfit)}</div>
                   </div>
                 </div>

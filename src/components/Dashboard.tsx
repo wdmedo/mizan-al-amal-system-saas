@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingDown, Users, UserCheck, Briefcase, Shield, FileText, Calculator, TrendingUp } from 'lucide-react';
+import { TrendingDown, Users, UserCheck, Briefcase, Shield, FileText, Calculator, TrendingUp, DollarSign } from 'lucide-react';
 import { useAccountingData } from '@/hooks/useAccountingData';
 
 const Dashboard = () => {
@@ -15,6 +15,7 @@ const Dashboard = () => {
   );
   
   const totalCompletedProfit = data.completedCustomers.reduce((sum, customer) => sum + customer.netProfit, 0);
+  const totalCompletedCapital = data.completedCustomers.reduce((sum, customer) => sum + customer.amount, 0);
   
   const totalEmployeeAdvances = data.employees.reduce((sum, employee) => sum + employee.advances, 0);
   
@@ -45,25 +46,32 @@ const Dashboard = () => {
       bgColor: 'from-green-50 to-emerald-50'
     },
     {
+      title: 'رأس مال العملاء الخالصين',
+      value: totalCompletedCapital,
+      icon: DollarSign,
+      color: 'from-blue-500 to-indigo-500',
+      bgColor: 'from-blue-50 to-indigo-50'
+    },
+    {
       title: 'سلفيات الموظفين',
       value: totalEmployeeAdvances,
       icon: Briefcase,
-      color: 'from-blue-500 to-indigo-500',
-      bgColor: 'from-blue-50 to-indigo-50'
+      color: 'from-purple-500 to-violet-500',
+      bgColor: 'from-purple-50 to-violet-50'
     },
     {
       title: 'إجمالي التغطيات',
       value: totalCoverages,
       icon: Shield,
-      color: 'from-purple-500 to-violet-500',
-      bgColor: 'from-purple-50 to-violet-50'
+      color: 'from-teal-500 to-cyan-500',
+      bgColor: 'from-teal-50 to-cyan-50'
     },
     {
       title: 'إجمالي الأرصدة',
       value: totalAccountBalance,
       icon: FileText,
-      color: 'from-teal-500 to-cyan-500',
-      bgColor: 'from-teal-50 to-cyan-50'
+      color: 'from-gray-500 to-slate-500',
+      bgColor: 'from-gray-50 to-slate-50'
     }
   ];
 
@@ -115,7 +123,7 @@ const Dashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-blue-700">
               <Calculator className="h-5 w-5" />
-              ملخص الإيرادات
+              ملخص الإيرادات والأرباح
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -124,8 +132,12 @@ const Dashboard = () => {
               <span className="font-semibold text-green-600">{formatCurrency(totalPendingPayments)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">أرباح العملاء الخالصين:</span>
+              <span className="text-gray-600">صافي أرباح العملاء الخالصين:</span>
               <span className="font-semibold text-green-600">{formatCurrency(totalCompletedProfit)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">رأس مال العملاء الخالصين:</span>
+              <span className="font-semibold text-blue-600">{formatCurrency(totalCompletedCapital)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">أرصدة الحسابات:</span>
@@ -133,8 +145,8 @@ const Dashboard = () => {
             </div>
             <hr className="border-gray-200" />
             <div className="flex justify-between text-lg font-bold">
-              <span className="text-gray-800">إجمالي الإيرادات:</span>
-              <span className="text-green-600">{formatCurrency(totalPendingPayments + totalCompletedProfit + totalAccountBalance)}</span>
+              <span className="text-gray-800">إجمالي الأموال المتاحة:</span>
+              <span className="text-green-600">{formatCurrency(totalPendingPayments + totalCompletedProfit + totalCompletedCapital + totalAccountBalance)}</span>
             </div>
           </CardContent>
         </Card>
@@ -173,7 +185,7 @@ const Dashboard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-700">
             <TrendingUp className="h-5 w-5" />
-            صافي الربح
+            الربح الصافي الإجمالي
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -181,7 +193,10 @@ const Dashboard = () => {
             <div className="text-4xl font-bold text-green-600 mb-2">
               {formatCurrency((totalPendingPayments + totalCompletedProfit + totalAccountBalance) - (totalExpenses + totalEmployeeAdvances))}
             </div>
-            <p className="text-gray-600">الربح الصافي للشركة</p>
+            <p className="text-gray-600">الربح الصافي للشركة (بدون رأس المال)</p>
+            <p className="text-sm text-gray-500 mt-2">
+              رأس المال: {formatCurrency(totalCompletedCapital)} (يعود إلى الحسابات الأساسية)
+            </p>
           </div>
         </CardContent>
       </Card>
