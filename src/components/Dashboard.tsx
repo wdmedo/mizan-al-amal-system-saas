@@ -22,7 +22,6 @@ const Dashboard = () => {
   const totalEmployeeSalaries = data.employees.reduce((sum, employee) => sum + employee.salary, 0);
   
   const totalCoverages = data.coverages.reduce((sum, coverage) => sum + coverage.amount, 0);
-  const totalCoverageReceived = data.coverages.reduce((sum, coverage) => sum + (coverage.amount - coverage.remaining), 0);
   
   // إجمالي الأرصدة = رأس المال
   const totalAccountBalance = data.accounts.reduce((sum, account) => sum + account.balance, 0);
@@ -36,12 +35,6 @@ const Dashboard = () => {
   
   // صافي رصيد البنك = رأس المال + الإيرادات + التغطيات - المصروفات - إجمالي العملاء المعلقين
   const netBankBalance = capitalAmount + totalRevenues + totalCoverages - totalOfficeExpenses - totalPendingPayments;
-  
-  // الرصيد الفعلي للنظام = رأس المال + إجمالي أرباح العملاء - إجمالي المصروفات - إجمالي مدفوعات العملاء المعلقين - إجمالي التغطيات - إجمالي سحوبات الموظفين
-  const actualSystemBalance = capitalAmount + totalCompletedProfit - totalExpenses - totalPendingPayments - totalCoverages - totalEmployeeAdvances;
-  
-  // الواصل من التغطيات يضاف على الرصيد الفعلي للنظام
-  const finalSystemBalance = actualSystemBalance + totalCoverageReceived;
 
   const stats = [
     {
@@ -249,106 +242,6 @@ const Dashboard = () => {
           );
         })}
       </div>
-
-      {/* System Balance Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-700">
-              <Calculator className="h-5 w-5" />
-              حساب الرصيد الفعلي للنظام
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-600">رأس المال:</span>
-              <span className="font-semibold text-blue-600">{formatCurrency(capitalAmount)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">صافي أرباح العملاء الخالصين:</span>
-              <span className="font-semibold text-green-600">+ {formatCurrency(totalCompletedProfit)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">إجمالي المصروفات:</span>
-              <span className="font-semibold text-red-600">- {formatCurrency(totalExpenses)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">مدفوعات العملاء المعلقين:</span>
-              <span className="font-semibold text-red-600">- {formatCurrency(totalPendingPayments)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">إجمالي التغطيات:</span>
-              <span className="font-semibold text-red-600">- {formatCurrency(totalCoverages)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">سلفيات الموظفين:</span>
-              <span className="font-semibold text-red-600">- {formatCurrency(totalEmployeeAdvances)}</span>
-            </div>
-            <hr className="border-gray-200" />
-            <div className="flex justify-between text-lg font-bold">
-              <span className="text-gray-800">الرصيد الفعلي للنظام:</span>
-              <span className={actualSystemBalance >= 0 ? "text-green-600" : "text-red-600"}>
-                {formatCurrency(actualSystemBalance)}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-700">
-              <TrendingUp className="h-5 w-5" />
-              الرصيد النهائي للنظام
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-600">الرصيد الفعلي للنظام:</span>
-              <span className={`font-semibold ${actualSystemBalance >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {formatCurrency(actualSystemBalance)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">الواصل من التغطيات:</span>
-              <span className="font-semibold text-green-600">+ {formatCurrency(totalCoverageReceived)}</span>
-            </div>
-            <hr className="border-gray-200" />
-            <div className="flex justify-between text-lg font-bold">
-              <span className="text-gray-800">الرصيد النهائي للنظام:</span>
-              <span className={finalSystemBalance >= 0 ? "text-green-600" : "text-red-600"}>
-                {formatCurrency(finalSystemBalance)}
-              </span>
-            </div>
-            <p className="text-sm text-gray-500 mt-2">
-              (بعد إضافة الواصل من التغطيات)
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Additional Summary Card */}
-      <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-0 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-purple-700">
-            <Shield className="h-5 w-5" />
-            ملخص التغطيات
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex justify-between">
-            <span className="text-gray-600">إجمالي التغطيات:</span>
-            <span className="font-semibold text-purple-600">{formatCurrency(totalCoverages)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">الواصل من التغطيات:</span>
-            <span className="font-semibold text-green-600">{formatCurrency(totalCoverageReceived)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">المتبقي من التغطيات:</span>
-            <span className="font-semibold text-orange-600">{formatCurrency(totalCoverages - totalCoverageReceived)}</span>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
