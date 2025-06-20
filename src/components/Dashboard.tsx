@@ -20,8 +20,17 @@ const Dashboard = () => {
   const totalEmployeeAdvances = data.employees.reduce((sum, employee) => sum + employee.advances, 0);
   
   const totalCoverages = data.coverages.reduce((sum, coverage) => sum + coverage.amount, 0);
+  const totalCoverageReceived = data.coverages.reduce((sum, coverage) => sum + (coverage.amount - coverage.remaining), 0);
   
+  // إجمالي الأرصدة = رأس المال
   const totalAccountBalance = data.accounts.reduce((sum, account) => sum + account.balance, 0);
+  const capitalAmount = totalAccountBalance; // رأس المال
+  
+  // الرصيد الفعلي للنظام = رأس المال + إجمالي أرباح العملاء - إجمالي المصروفات - إجمالي مدفوعات العملاء المعلقين - إجمالي التغطيات - إجمالي سحوبات الموظفين
+  const actualSystemBalance = capitalAmount + totalCompletedProfit - totalExpenses - totalPendingPayments - totalCoverages - totalEmployeeAdvances;
+  
+  // الواصل من التغطيات يضاف على الرصيد الفعلي للنظام
+  const finalSystemBalance = actualSystemBalance + totalCoverageReceived;
 
   const stats = [
     {
@@ -67,8 +76,8 @@ const Dashboard = () => {
       bgColor: 'from-teal-50 to-cyan-50'
     },
     {
-      title: 'إجمالي الأرصدة',
-      value: totalAccountBalance,
+      title: 'رأس المال (إجمالي الأرصدة)',
+      value: capitalAmount,
       icon: FileText,
       color: 'from-gray-500 to-slate-500',
       bgColor: 'from-gray-50 to-slate-50'
@@ -117,86 +126,102 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Summary Cards */}
+      {/* System Balance Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-blue-700">
               <Calculator className="h-5 w-5" />
-              ملخص الإيرادات والأرباح
+              حساب الرصيد الفعلي للنظام
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-gray-600">مدفوعات العملاء المعلقين:</span>
-              <span className="font-semibold text-green-600">{formatCurrency(totalPendingPayments)}</span>
+              <span className="text-gray-600">رأس المال:</span>
+              <span className="font-semibold text-blue-600">{formatCurrency(capitalAmount)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">صافي أرباح العملاء الخالصين:</span>
-              <span className="font-semibold text-green-600">{formatCurrency(totalCompletedProfit)}</span>
+              <span className="font-semibold text-green-600">+ {formatCurrency(totalCompletedProfit)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">رأس مال العملاء الخالصين:</span>
-              <span className="font-semibold text-blue-600">{formatCurrency(totalCompletedCapital)}</span>
+              <span className="text-gray-600">إجمالي المصروفات:</span>
+              <span className="font-semibold text-red-600">- {formatCurrency(totalExpenses)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">أرصدة الحسابات:</span>
-              <span className="font-semibold text-green-600">{formatCurrency(totalAccountBalance)}</span>
+              <span className="text-gray-600">مدفوعات العملاء المعلقين:</span>
+              <span className="font-semibold text-red-600">- {formatCurrency(totalPendingPayments)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">إجمالي التغطيات:</span>
+              <span className="font-semibold text-red-600">- {formatCurrency(totalCoverages)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">سلفيات الموظفين:</span>
+              <span className="font-semibold text-red-600">- {formatCurrency(totalEmployeeAdvances)}</span>
             </div>
             <hr className="border-gray-200" />
             <div className="flex justify-between text-lg font-bold">
-              <span className="text-gray-800">إجمالي الأموال المتاحة:</span>
-              <span className="text-green-600">{formatCurrency(totalPendingPayments + totalCompletedProfit + totalCompletedCapital + totalAccountBalance)}</span>
+              <span className="text-gray-800">الرصيد الفعلي للنظام:</span>
+              <span className={actualSystemBalance >= 0 ? "text-green-600" : "text-red-600"}>
+                {formatCurrency(actualSystemBalance)}
+              </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-red-50 to-pink-50 border-0 shadow-lg">
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700">
-              <TrendingDown className="h-5 w-5" />
-              ملخص المصروفات
+            <CardTitle className="flex items-center gap-2 text-green-700">
+              <TrendingUp className="h-5 w-5" />
+              الرصيد النهائي للنظام
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-gray-600">المصروفات العامة:</span>
-              <span className="font-semibold text-red-600">{formatCurrency(totalExpenses)}</span>
+              <span className="text-gray-600">الرصيد الفعلي للنظام:</span>
+              <span className={`font-semibold ${actualSystemBalance >= 0 ? "text-green-600" : "text-red-600"}`}>
+                {formatCurrency(actualSystemBalance)}
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">سلفيات الموظفين:</span>
-              <span className="font-semibold text-red-600">{formatCurrency(totalEmployeeAdvances)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">التغطيات:</span>
-              <span className="font-semibold text-orange-600">{formatCurrency(totalCoverages)}</span>
+              <span className="text-gray-600">الواصل من التغطيات:</span>
+              <span className="font-semibold text-green-600">+ {formatCurrency(totalCoverageReceived)}</span>
             </div>
             <hr className="border-gray-200" />
             <div className="flex justify-between text-lg font-bold">
-              <span className="text-gray-800">إجمالي المصروفات:</span>
-              <span className="text-red-600">{formatCurrency(totalExpenses + totalEmployeeAdvances)}</span>
+              <span className="text-gray-800">الرصيد النهائي للنظام:</span>
+              <span className={finalSystemBalance >= 0 ? "text-green-600" : "text-red-600"}>
+                {formatCurrency(finalSystemBalance)}
+              </span>
             </div>
+            <p className="text-sm text-gray-500 mt-2">
+              (بعد إضافة الواصل من التغطيات)
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Net Profit Card */}
-      <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-0 shadow-lg">
+      {/* Additional Summary Card */}
+      <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-0 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-700">
-            <TrendingUp className="h-5 w-5" />
-            الربح الصافي الإجمالي
+          <CardTitle className="flex items-center gap-2 text-purple-700">
+            <Shield className="h-5 w-5" />
+            ملخص التغطيات
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-green-600 mb-2">
-              {formatCurrency((totalPendingPayments + totalCompletedProfit + totalAccountBalance) - (totalExpenses + totalEmployeeAdvances))}
-            </div>
-            <p className="text-gray-600">الربح الصافي للشركة (بدون رأس المال)</p>
-            <p className="text-sm text-gray-500 mt-2">
-              رأس المال: {formatCurrency(totalCompletedCapital)} (يعود إلى الحسابات الأساسية)
-            </p>
+        <CardContent className="space-y-3">
+          <div className="flex justify-between">
+            <span className="text-gray-600">إجمالي التغطيات:</span>
+            <span className="font-semibold text-purple-600">{formatCurrency(totalCoverages)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">الواصل من التغطيات:</span>
+            <span className="font-semibold text-green-600">{formatCurrency(totalCoverageReceived)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">المتبقي من التغطيات:</span>
+            <span className="font-semibold text-orange-600">{formatCurrency(totalCoverages - totalCoverageReceived)}</span>
           </div>
         </CardContent>
       </Card>
