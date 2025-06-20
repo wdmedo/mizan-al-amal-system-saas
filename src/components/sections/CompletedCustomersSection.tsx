@@ -14,22 +14,20 @@ const CompletedCustomersSection = () => {
     name: '',
     idNumber: '',
     phoneNumber: '',
-    totalPayment: '',
-    fixedInterest: '',
     amount: '',
-    brokerPercentage: '',
+    fixedInterest: '',
+    brokerInterest: '',
     productDifference: ''
   });
 
   const calculateNetProfit = (customer: any) => {
-    const totalPayment = parseFloat(customer.totalPayment) || 0;
-    const fixedInterest = parseFloat(customer.fixedInterest) || 0;
     const amount = parseFloat(customer.amount) || 0;
-    const brokerPercentage = parseFloat(customer.brokerPercentage) || 0;
+    const fixedInterest = parseFloat(customer.fixedInterest) || 0;
+    const brokerInterest = parseFloat(customer.brokerInterest) || 0;
     const productDifference = parseFloat(customer.productDifference) || 0;
     
-    // الصافي = السداد + الفائدة - فائدة الوسيط - فرق السلعة
-    return totalPayment + fixedInterest - (amount * brokerPercentage / 100) - productDifference;
+    // الصافي = المبلغ الأساسي + الفائدة الثابتة - فائدة الوسيط - فرق السلعة
+    return amount + fixedInterest - brokerInterest - productDifference;
   };
 
   const handleAddCustomer = () => {
@@ -38,10 +36,9 @@ const CompletedCustomersSection = () => {
         name: newCustomer.name,
         idNumber: newCustomer.idNumber,
         phoneNumber: newCustomer.phoneNumber,
-        totalPayment: parseFloat(newCustomer.totalPayment) || 0,
-        fixedInterest: parseFloat(newCustomer.fixedInterest) || 0,
         amount: parseFloat(newCustomer.amount) || 0,
-        brokerPercentage: parseFloat(newCustomer.brokerPercentage) || 0,
+        fixedInterest: parseFloat(newCustomer.fixedInterest) || 0,
+        brokerInterest: parseFloat(newCustomer.brokerInterest) || 0,
         productDifference: parseFloat(newCustomer.productDifference) || 0,
         netProfit: calculateNetProfit(newCustomer)
       };
@@ -51,10 +48,9 @@ const CompletedCustomersSection = () => {
         name: '',
         idNumber: '',
         phoneNumber: '',
-        totalPayment: '',
-        fixedInterest: '',
         amount: '',
-        brokerPercentage: '',
+        fixedInterest: '',
+        brokerInterest: '',
         productDifference: ''
       });
     }
@@ -83,7 +79,7 @@ const CompletedCustomersSection = () => {
         </h2>
         <p className="text-gray-600">إدارة العملاء المكتملين وحساب الأرباح النهائية</p>
         <p className="text-sm text-gray-500 mt-2">
-          معادلة الحساب: السداد + الفائدة - فائدة الوسيط - فرق السلعة = الصافي
+          معادلة الحساب: المبلغ الأساسي + الفائدة الثابتة - فائدة الوسيط - فرق السلعة = الصافي
         </p>
       </div>
 
@@ -148,13 +144,13 @@ const CompletedCustomersSection = () => {
           {/* Financial Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="totalPayment">إجمالي السداد</Label>
+              <Label htmlFor="amount">المبلغ الأساسي</Label>
               <Input
-                id="totalPayment"
+                id="amount"
                 type="number"
                 placeholder="0.00"
-                value={newCustomer.totalPayment}
-                onChange={(e) => setNewCustomer({ ...newCustomer, totalPayment: e.target.value })}
+                value={newCustomer.amount}
+                onChange={(e) => setNewCustomer({ ...newCustomer, amount: e.target.value })}
               />
             </div>
             <div>
@@ -168,23 +164,13 @@ const CompletedCustomersSection = () => {
               />
             </div>
             <div>
-              <Label htmlFor="amount">المبلغ الأساسي</Label>
+              <Label htmlFor="brokerInterest">فائدة الوسيط</Label>
               <Input
-                id="amount"
+                id="brokerInterest"
                 type="number"
                 placeholder="0.00"
-                value={newCustomer.amount}
-                onChange={(e) => setNewCustomer({ ...newCustomer, amount: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="brokerPercentage">نسبة الوسيط (%)</Label>
-              <Input
-                id="brokerPercentage"
-                type="number"
-                placeholder="0"
-                value={newCustomer.brokerPercentage}
-                onChange={(e) => setNewCustomer({ ...newCustomer, brokerPercentage: e.target.value })}
+                value={newCustomer.brokerInterest}
+                onChange={(e) => setNewCustomer({ ...newCustomer, brokerInterest: e.target.value })}
               />
             </div>
             <div>
@@ -197,7 +183,7 @@ const CompletedCustomersSection = () => {
                 onChange={(e) => setNewCustomer({ ...newCustomer, productDifference: e.target.value })}
               />
             </div>
-            <div className="flex items-end">
+            <div className="flex items-end md:col-span-2 lg:col-span-2">
               <div className="w-full">
                 <Label>الصافي المتوقع</Label>
                 <div className="p-2 bg-gray-100 rounded-md text-center font-semibold text-green-600">
@@ -255,22 +241,18 @@ const CompletedCustomersSection = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-sm">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-sm">
                   <div>
-                    <div className="text-gray-600">إجمالي السداد</div>
-                    <div className="font-semibold text-blue-600">{formatCurrency(customer.totalPayment)}</div>
+                    <div className="text-gray-600">المبلغ الأساسي</div>
+                    <div className="font-semibold text-blue-600">{formatCurrency(customer.amount)}</div>
                   </div>
                   <div>
                     <div className="text-gray-600">الفائدة الثابتة</div>
                     <div className="font-semibold text-green-600">{formatCurrency(customer.fixedInterest)}</div>
                   </div>
                   <div>
-                    <div className="text-gray-600">المبلغ الأساسي</div>
-                    <div className="font-semibold text-gray-600">{formatCurrency(customer.amount)}</div>
-                  </div>
-                  <div>
                     <div className="text-gray-600">فائدة الوسيط</div>
-                    <div className="font-semibold text-red-600">{formatCurrency(customer.amount * customer.brokerPercentage / 100)}</div>
+                    <div className="font-semibold text-red-600">{formatCurrency(customer.brokerInterest)}</div>
                   </div>
                   <div>
                     <div className="text-gray-600">فرق السلعة</div>

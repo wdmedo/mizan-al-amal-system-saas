@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Expense, 
@@ -29,10 +28,9 @@ const transformCompletedCustomer = (row: any): CompletedCustomer => ({
   name: row.name,
   idNumber: row.id_number,
   phoneNumber: row.phone_number,
-  totalPayment: row.total_payment,
-  fixedInterest: row.fixed_interest,
   amount: row.amount,
-  brokerPercentage: row.broker_percentage,
+  fixedInterest: row.fixed_interest,
+  brokerInterest: row.broker_interest,
   productDifference: row.product_difference,
   netProfit: row.net_profit
 });
@@ -164,10 +162,9 @@ export const addCompletedCustomer = async (customer: Omit<CompletedCustomer, 'id
     name: customer.name,
     id_number: customer.idNumber,
     phone_number: customer.phoneNumber,
-    total_payment: customer.totalPayment,
-    fixed_interest: customer.fixedInterest,
     amount: customer.amount,
-    broker_percentage: customer.brokerPercentage,
+    fixed_interest: customer.fixedInterest,
+    broker_interest: customer.brokerInterest,
     product_difference: customer.productDifference,
     net_profit: customer.netProfit
   };

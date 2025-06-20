@@ -25,10 +25,9 @@ export interface CompletedCustomer {
   name: string;
   idNumber: string;
   phoneNumber: string;
-  totalPayment: number;
-  fixedInterest: number;
   amount: number;
-  brokerPercentage: number;
+  fixedInterest: number;
+  brokerInterest: number;
   productDifference: number;
   netProfit: number;
 }
