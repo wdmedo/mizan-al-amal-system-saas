@@ -8,6 +8,8 @@ import CompletedCustomersSection from '@/components/sections/CompletedCustomersS
 import EmployeesSection from '@/components/sections/EmployeesSection';
 import CoveragesSection from '@/components/sections/CoveragesSection';
 import AccountsSection from '@/components/sections/AccountsSection';
+import MonthlyYearlyClosingSection from '@/components/sections/MonthlyYearlyClosingSection';
+import CapitalOverYearSection from '@/components/sections/CapitalOverYearSection';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -28,6 +30,10 @@ const Index = () => {
         return <CoveragesSection />;
       case 'accounts':
         return <AccountsSection />;
+      case 'monthly-yearly-closing':
+        return <MonthlyYearlyClosingSection />;
+      case 'capital-over-year':
+        return <CapitalOverYearSection />;
       default:
         return <Dashboard />;
     }

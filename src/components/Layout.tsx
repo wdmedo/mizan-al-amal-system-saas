@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Home, TrendingDown, Users, UserCheck, Briefcase, Shield, FileText } from 'lucide-react';
+import { Menu, X, Home, TrendingDown, Users, UserCheck, Briefcase, Shield, FileText, Calendar, TrendingUp } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,7 +18,9 @@ const Layout = ({ children, activeSection, onSectionChange }: LayoutProps) => {
     { id: 'completed-customers', label: 'العملاء الخالصين', icon: UserCheck },
     { id: 'employees', label: 'الموظفين', icon: Briefcase },
     { id: 'coverages', label: 'التغطيات', icon: Shield },
-    { id: 'accounts', label: 'ملخص الحسابات', icon: FileText }
+    { id: 'accounts', label: 'ملخص الحسابات', icon: FileText },
+    { id: 'monthly-yearly-closing', label: 'التقفيل الشهري والسنوي', icon: Calendar },
+    { id: 'capital-over-year', label: 'رأس المال على مدى السنة', icon: TrendingUp }
   ];
 
   return (
