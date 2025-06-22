@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
+import LoginForm from '@/components/LoginForm';
 import Dashboard from '@/components/Dashboard';
 import ExpensesSection from '@/components/sections/ExpensesSection';
 import PendingCustomersSection from '@/components/sections/PendingCustomersSection';
@@ -10,9 +11,16 @@ import CoveragesSection from '@/components/sections/CoveragesSection';
 import AccountsSection from '@/components/sections/AccountsSection';
 import MonthlyYearlyClosingSection from '@/components/sections/MonthlyYearlyClosingSection';
 import CapitalOverYearSection from '@/components/sections/CapitalOverYearSection';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
+  const { isLoggedIn, login } = useAuth();
+
+  // إذا لم يكن المستخدم مسجل الدخول، عرض نموذج تسجيل الدخول
+  if (!isLoggedIn) {
+    return <LoginForm onLogin={login} />;
+  }
 
   const renderSection = () => {
     switch (activeSection) {

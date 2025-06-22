@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Home, TrendingDown, Users, UserCheck, Briefcase, Shield, FileText, Calendar, TrendingUp } from 'lucide-react';
+import { Menu, X, Home, TrendingDown, Users, UserCheck, Briefcase, Shield, FileText, Calendar, TrendingUp, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,6 +11,7 @@ interface LayoutProps {
 
 const Layout = ({ children, activeSection, onSectionChange }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { username, logout } = useAuth();
 
   const menuItems = [
     { id: 'dashboard', label: 'لوحة التحكم', icon: Home },
@@ -40,6 +42,18 @@ const Layout = ({ children, activeSection, onSectionChange }: LayoutProps) => {
             <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               نظام المحاسبة الشامل لمؤسسة تمام السداد
             </h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">مرحباً، {username}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={logout}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              تسجيل الخروج
+            </Button>
           </div>
         </div>
       </header>
