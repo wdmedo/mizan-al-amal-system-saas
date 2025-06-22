@@ -293,7 +293,7 @@ export const deleteAccount = async (id: string): Promise<void> => {
 // Capital Entries
 export const getCapitalEntries = async (): Promise<CapitalEntry[]> => {
   const { data, error } = await supabase
-    .from('capital_entries')
+    .from('capital_entries' as any)
     .select('*')
     .order('date', { ascending: false });
   
@@ -303,7 +303,7 @@ export const getCapitalEntries = async (): Promise<CapitalEntry[]> => {
 
 export const addCapitalEntry = async (entry: Omit<CapitalEntry, 'id'>): Promise<CapitalEntry> => {
   const { data, error } = await supabase
-    .from('capital_entries')
+    .from('capital_entries' as any)
     .insert(entry)
     .select()
     .single();
@@ -319,7 +319,7 @@ export const addCapitalEntry = async (entry: Omit<CapitalEntry, 'id'>): Promise<
 export const deleteCapitalEntry = async (id: string): Promise<void> => {
   // الحصول على بيانات الحركة قبل حذفها لعكس تأثيرها على حساب البنك
   const { data: entry, error: fetchError } = await supabase
-    .from('capital_entries')
+    .from('capital_entries' as any)
     .select('*')
     .eq('id', id)
     .single();
@@ -327,7 +327,7 @@ export const deleteCapitalEntry = async (id: string): Promise<void> => {
   if (fetchError) throw fetchError;
   
   const { error } = await supabase
-    .from('capital_entries')
+    .from('capital_entries' as any)
     .delete()
     .eq('id', id);
   
@@ -336,8 +336,10 @@ export const deleteCapitalEntry = async (id: string): Promise<void> => {
   // عكس تأثير الحركة على حساب البنك
   if (entry) {
     await updateBankAccountForCapitalEntry({
-      ...entry,
-      type: entry.type === 'increase' ? 'decrease' : 'increase'
+      date: entry.date,
+      amount: entry.amount,
+      type: entry.type === 'increase' ? 'decrease' : 'increase',
+      description: entry.description
     });
   }
 };
