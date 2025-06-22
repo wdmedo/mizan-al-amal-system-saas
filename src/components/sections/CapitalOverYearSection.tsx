@@ -8,26 +8,9 @@ import { Plus, TrendingUp, TrendingDown, Calendar, Edit, Trash2 } from 'lucide-r
 import { useAccountingData } from '@/hooks/useAccountingData';
 import PrintButton from '@/components/PrintButton';
 
-interface CapitalEntry {
-  id: string;
-  date: string;
-  amount: number;
-  type: 'increase' | 'decrease';
-  description: string;
-}
-
 const CapitalOverYearSection = () => {
-  const { data } = useAccountingData();
-  const [capitalEntries, setCapitalEntries] = useState<CapitalEntry[]>([
-    {
-      id: '1',
-      date: '2024-01-01',
-      amount: 100000,
-      type: 'increase',
-      description: 'رأس المال الابتدائي'
-    }
-  ]);
-
+  const { data, addCapitalEntry, deleteCapitalEntry } = useAccountingData();
+  
   const [newEntry, setNewEntry] = useState({
     date: new Date().toISOString().split('T')[0],
     amount: '',
@@ -39,15 +22,13 @@ const CapitalOverYearSection = () => {
 
   const handleAddEntry = () => {
     if (newEntry.amount && newEntry.description) {
-      const entry: CapitalEntry = {
-        id: Date.now().toString(),
+      addCapitalEntry({
         date: newEntry.date,
         amount: parseFloat(newEntry.amount),
         type: newEntry.type,
         description: newEntry.description
-      };
+      });
 
-      setCapitalEntries([...capitalEntries, entry]);
       setNewEntry({
         date: new Date().toISOString().split('T')[0],
         amount: '',
@@ -58,18 +39,18 @@ const CapitalOverYearSection = () => {
   };
 
   const handleDeleteEntry = (id: string) => {
-    setCapitalEntries(capitalEntries.filter(entry => entry.id !== id));
+    deleteCapitalEntry(id);
   };
 
   const calculateCurrentCapital = () => {
-    return capitalEntries.reduce((total, entry) => {
+    return data.capitalEntries.reduce((total, entry) => {
       return entry.type === 'increase' ? total + entry.amount : total - entry.amount;
     }, 0);
   };
 
   const getMonthlyData = () => {
     const months = {};
-    capitalEntries.forEach(entry => {
+    data.capitalEntries.forEach(entry => {
       const monthKey = entry.date.substring(0, 7); // YYYY-MM
       if (!months[monthKey]) {
         months[monthKey] = { increases: 0, decreases: 0, net: 0 };
@@ -84,6 +65,9 @@ const CapitalOverYearSection = () => {
     return months;
   };
 
+  // البحث عن حساب البنك الرئيسي
+  const bankAccount = data.accounts.find(account => account.name === 'حساب البنك الرئيسي');
+
   const monthlyData = getMonthlyData();
   const currentCapital = calculateCurrentCapital();
 
@@ -96,20 +80,36 @@ const CapitalOverYearSection = () => {
         <PrintButton printableElementId="capital-over-year-report" />
       </div>
 
-      {/* ملخص رأس المال الحالي */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50">
-        <CardContent className="p-6">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">رأس المال الحالي</h3>
-            <p className="text-4xl font-bold text-blue-800">
-              {currentCapital.toLocaleString()} ر.س
-            </p>
-            <p className="text-sm text-gray-600 mt-2">
-              آخر تحديث: {new Date().toLocaleDateString('ar-SA')}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* ملخص رأس المال الحالي وحساب البنك */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="bg-gradient-to-r from-blue-50 to-purple-50">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">رأس المال الحالي</h3>
+              <p className="text-4xl font-bold text-blue-800">
+                {currentCapital.toLocaleString()} ر.س
+              </p>
+              <p className="text-sm text-gray-600 mt-2">
+                آخر تحديث: {new Date().toLocaleDateString('ar-SA')}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-green-50 to-emerald-50">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">رصيد البنك الرئيسي</h3>
+              <p className="text-4xl font-bold text-green-800">
+                {bankAccount ? bankAccount.balance.toLocaleString() : '0'} ر.س
+              </p>
+              <p className="text-sm text-gray-600 mt-2">
+                يتم تحديثه تلقائياً مع حركات رأس المال
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* إضافة حركة جديدة */}
       <Card>
@@ -118,6 +118,9 @@ const CapitalOverYearSection = () => {
             <Plus className="h-5 w-5" />
             إضافة حركة رأس المال
           </CardTitle>
+          <p className="text-sm text-gray-600">
+            ملاحظة: سيتم تحديث حساب البنك الرئيسي تلقائياً عند إضافة الحركة
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -164,7 +167,7 @@ const CapitalOverYearSection = () => {
           </div>
           <Button onClick={handleAddEntry} className="w-full">
             <Plus className="h-4 w-4 ml-2" />
-            إضافة الحركة
+            إضافة الحركة وتحديث حساب البنك
           </Button>
         </CardContent>
       </Card>
@@ -225,7 +228,7 @@ const CapitalOverYearSection = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {capitalEntries.map((entry) => (
+                    {data.capitalEntries.map((entry) => (
                       <tr key={entry.id}>
                         <td className="border border-gray-300 p-2">
                           {new Date(entry.date).toLocaleDateString('ar-SA')}
@@ -276,6 +279,14 @@ const CapitalOverYearSection = () => {
                   {currentCapital.toLocaleString()} ر.س
                 </span>
               </div>
+              {bankAccount && (
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-lg font-semibold">رصيد البنك الرئيسي:</span>
+                  <span className="text-2xl font-bold text-green-800">
+                    {bankAccount.balance.toLocaleString()} ر.س
+                  </span>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

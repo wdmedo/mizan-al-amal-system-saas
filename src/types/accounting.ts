@@ -53,6 +53,14 @@ export interface Account {
   balance: number;
 }
 
+export interface CapitalEntry {
+  id: string;
+  date: string;
+  amount: number;
+  type: 'increase' | 'decrease';
+  description: string;
+}
+
 export interface AccountingData {
   expenses: Expense[];
   pendingCustomers: PendingCustomer[];
@@ -60,4 +68,5 @@ export interface AccountingData {
   employees: Employee[];
   coverages: Coverage[];
   accounts: Account[];
+  capitalEntries: CapitalEntry[];
 }

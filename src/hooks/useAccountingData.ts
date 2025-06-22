@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AccountingData } from '@/types/accounting';
 import * as db from '@/services/database';
@@ -39,13 +38,19 @@ export const useAccountingData = () => {
     queryFn: db.getAccounts,
   });
 
+  const { data: capitalEntries = [] } = useQuery({
+    queryKey: ['capital-entries'],
+    queryFn: db.getCapitalEntries,
+  });
+
   const data: AccountingData = {
     expenses,
     pendingCustomers,
     completedCustomers,
     employees,
     coverages,
-    accounts
+    accounts,
+    capitalEntries
   };
 
   // Mutations for expenses
@@ -209,6 +214,31 @@ export const useAccountingData = () => {
     }
   });
 
+  // Mutations for capital entries
+  const addCapitalEntryMutation = useMutation({
+    mutationFn: db.addCapitalEntry,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['capital-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      toast({ title: "تمت إضافة حركة رأس المال وتحديث حساب البنك بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في إضافة حركة رأس المال", variant: "destructive" });
+    }
+  });
+
+  const deleteCapitalEntryMutation = useMutation({
+    mutationFn: db.deleteCapitalEntry,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['capital-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      toast({ title: "تم حذف حركة رأس المال وتحديث حساب البنك بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في حذف حركة رأس المال", variant: "destructive" });
+    }
+  });
+
   return {
     data,
     // Expense functions
@@ -235,6 +265,10 @@ export const useAccountingData = () => {
     
     // Account functions
     addAccount: (account: any) => addAccountMutation.mutate(account),
-    deleteAccount: (id: string) => deleteAccountMutation.mutate(id)
+    deleteAccount: (id: string) => deleteAccountMutation.mutate(id),
+    
+    // Capital entry functions
+    addCapitalEntry: (entry: any) => addCapitalEntryMutation.mutate(entry),
+    deleteCapitalEntry: (id: string) => deleteCapitalEntryMutation.mutate(id)
   };
 };

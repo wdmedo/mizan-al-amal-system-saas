@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Expense, 
@@ -7,7 +6,8 @@ import {
   CompletedCustomer, 
   Employee, 
   Coverage, 
-  Account 
+  Account,
+  CapitalEntry
 } from '@/types/accounting';
 
 // Helper function to transform database row to PendingCustomer
@@ -288,4 +288,91 @@ export const deleteAccount = async (id: string): Promise<void> => {
     .eq('id', id);
   
   if (error) throw error;
+};
+
+// Capital Entries
+export const getCapitalEntries = async (): Promise<CapitalEntry[]> => {
+  const { data, error } = await supabase
+    .from('capital_entries')
+    .select('*')
+    .order('date', { ascending: false });
+  
+  if (error) throw error;
+  return data || [];
+};
+
+export const addCapitalEntry = async (entry: Omit<CapitalEntry, 'id'>): Promise<CapitalEntry> => {
+  const { data, error } = await supabase
+    .from('capital_entries')
+    .insert(entry)
+    .select()
+    .single();
+  
+  if (error) throw error;
+
+  // تحديث حساب البنك الرئيسي تلقائياً
+  await updateBankAccountForCapitalEntry(entry);
+  
+  return data;
+};
+
+export const deleteCapitalEntry = async (id: string): Promise<void> => {
+  // الحصول على بيانات الحركة قبل حذفها لعكس تأثيرها على حساب البنك
+  const { data: entry, error: fetchError } = await supabase
+    .from('capital_entries')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (fetchError) throw fetchError;
+  
+  const { error } = await supabase
+    .from('capital_entries')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
+
+  // عكس تأثير الحركة على حساب البنك
+  if (entry) {
+    await updateBankAccountForCapitalEntry({
+      ...entry,
+      type: entry.type === 'increase' ? 'decrease' : 'increase'
+    });
+  }
+};
+
+// تحديث حساب البنك عند إضافة حركة رأس مال
+const updateBankAccountForCapitalEntry = async (entry: Omit<CapitalEntry, 'id'>) => {
+  // البحث عن حساب البنك الرئيسي أو إنشاؤه
+  let { data: bankAccount, error: fetchError } = await supabase
+    .from('accounts')
+    .select('*')
+    .eq('name', 'حساب البنك الرئيسي')
+    .single();
+  
+  if (fetchError && fetchError.code === 'PGRST116') {
+    // إنشاء حساب البنك الرئيسي إذا لم يكن موجوداً
+    const { data: newAccount, error: createError } = await supabase
+      .from('accounts')
+      .insert({ name: 'حساب البنك الرئيسي', balance: 0 })
+      .select()
+      .single();
+    
+    if (createError) throw createError;
+    bankAccount = newAccount;
+  } else if (fetchError) {
+    throw fetchError;
+  }
+
+  // تحديث رصيد حساب البنك
+  const balanceChange = entry.type === 'increase' ? entry.amount : -entry.amount;
+  const newBalance = bankAccount.balance + balanceChange;
+
+  const { error: updateError } = await supabase
+    .from('accounts')
+    .update({ balance: newBalance })
+    .eq('id', bankAccount.id);
+
+  if (updateError) throw updateError;
 };
