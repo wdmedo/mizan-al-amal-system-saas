@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingDown, Users, UserCheck, Briefcase, Shield, FileText, Calculator, TrendingUp, DollarSign, Banknote, AlertTriangle } from 'lucide-react';
@@ -39,8 +40,8 @@ const Dashboard = () => {
   // المصروفات = إجمالي رواتب الموظفين + مصروفات المكتب
   const totalOfficeExpenses = totalEmployeeSalaries + totalExpenses;
   
-  // صافي رصيد البنك = رأس المال على مدى السنة + الإيرادات - التغطيات + إجمالي المتبقي من التغطيات - المصروفات - إجمالي العملاء المعلقين
-  const netBankBalance = capitalOverYear + totalRevenues - totalCoverages + totalRemainingCoverages - totalOfficeExpenses - totalPendingPayments;
+  // صافي رصيد البنك = رأس المال على مدى السنة + الإيرادات - التغطيات + إجمالي المتبقي من التغطيات - المصروفات - إجمالي العملاء المعلقين - السلفيات
+  const netBankBalance = capitalOverYear + totalRevenues - totalCoverages + totalRemainingCoverages - totalOfficeExpenses - totalPendingPayments - totalEmployeeAdvances;
   
   // الفرق بين صافي رصيد البنك والرصيد الفعلي
   const bankBalanceDifference = netBankBalance - actualBankBalance;
@@ -213,6 +214,10 @@ const Dashboard = () => {
                   <span className="text-gray-600">إجمالي العملاء المعلقين:</span>
                   <span className="font-semibold text-red-600">- {formatCurrency(totalPendingPayments)}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">السلفيات:</span>
+                  <span className="font-semibold text-red-600">- {formatCurrency(totalEmployeeAdvances)}</span>
+                </div>
                 <hr className="border-gray-200" />
                 <div className="flex justify-between text-lg font-bold">
                   <span className="text-gray-800">صافي رصيد البنك:</span>
@@ -333,3 +338,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
