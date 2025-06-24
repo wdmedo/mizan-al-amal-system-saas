@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingDown, Users, UserCheck, Briefcase, Shield, FileText, Calculator, TrendingUp, DollarSign, Banknote } from 'lucide-react';
+import { TrendingDown, Users, UserCheck, Briefcase, Shield, FileText, Calculator, TrendingUp, DollarSign, Banknote, AlertTriangle } from 'lucide-react';
 import { useAccountingData } from '@/hooks/useAccountingData';
 import PrintButton from '@/components/PrintButton';
 
@@ -24,9 +24,13 @@ const Dashboard = () => {
   
   const totalCoverages = data.coverages.reduce((sum, coverage) => sum + coverage.amount, 0);
   
-  // إجمالي الأرصدة = رأس المال
-  const totalAccountBalance = data.accounts.reduce((sum, account) => sum + account.balance, 0);
-  const capitalAmount = totalAccountBalance; // رأس المال
+  // حساب رأس المال على مدى السنة من حركات رأس المال
+  const capitalOverYear = data.capitalEntries.reduce((sum, entry) => {
+    return sum + (entry.type === 'increase' ? entry.amount : -entry.amount);
+  }, 0);
+  
+  // الرصيد الفعلي للبنك = إجمالي الأرصدة
+  const actualBankBalance = data.accounts.reduce((sum, account) => sum + account.balance, 0);
   
   // الإيرادات = إجمالي أرباح العملاء الخالصين + إجمالي فرق السلعة
   const totalRevenues = totalCompletedProfit + totalProductDifference;
@@ -34,8 +38,11 @@ const Dashboard = () => {
   // المصروفات = إجمالي رواتب الموظفين + مصروفات المكتب
   const totalOfficeExpenses = totalEmployeeSalaries + totalExpenses;
   
-  // صافي رصيد البنك = رأس المال + الإيرادات + التغطيات - المصروفات - إجمالي العملاء المعلقين
-  const netBankBalance = capitalAmount + totalRevenues + totalCoverages - totalOfficeExpenses - totalPendingPayments;
+  // صافي رصيد البنك = رأس المال على مدى السنة + الإيرادات + التغطيات - المصروفات - إجمالي العملاء المعلقين
+  const netBankBalance = capitalOverYear + totalRevenues + totalCoverages - totalOfficeExpenses - totalPendingPayments;
+  
+  // الفرق بين صافي رصيد البنك والرصيد الفعلي
+  const bankBalanceDifference = netBankBalance - actualBankBalance;
 
   const stats = [
     {
@@ -81,8 +88,8 @@ const Dashboard = () => {
       bgColor: 'from-teal-50 to-cyan-50'
     },
     {
-      title: 'رأس المال (إجمالي الأرصدة)',
-      value: capitalAmount,
+      title: 'رأس المال على مدى السنة',
+      value: capitalOverYear,
       icon: FileText,
       color: 'from-gray-500 to-slate-500',
       bgColor: 'from-gray-50 to-slate-50'
@@ -109,24 +116,131 @@ const Dashboard = () => {
       </div>
 
       <div id="dashboard-content">
-        {/* Net Bank Balance - Main Card */}
-        <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 shadow-xl mb-6">
+        {/* Bank Balance Analysis - Main Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Net Bank Balance */}
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-700 text-lg">
+                <Calculator className="h-5 w-5" />
+                صافي رصيد البنك
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600 mb-2">
+                  {formatCurrency(netBankBalance)}
+                </div>
+                <p className="text-gray-600 text-sm">حسب المعادلة المالية</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Actual Bank Balance */}
+          <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-green-700 text-lg">
+                <Banknote className="h-5 w-5" />
+                الرصيد الفعلي للبنك
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600 mb-2">
+                  {formatCurrency(actualBankBalance)}
+                </div>
+                <p className="text-gray-600 text-sm">إجمالي الأرصدة</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Difference */}
+          <Card className={`bg-gradient-to-br ${bankBalanceDifference >= 0 ? 'from-emerald-50 to-green-50 border-emerald-200' : 'from-red-50 to-pink-50 border-red-200'} border-2 shadow-xl`}>
+            <CardHeader>
+              <CardTitle className={`flex items-center gap-2 text-lg ${bankBalanceDifference >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                <AlertTriangle className="h-5 w-5" />
+                الفرق في الرصيد
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center">
+                <div className={`text-3xl font-bold mb-2 ${bankBalanceDifference >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                  {formatCurrency(Math.abs(bankBalanceDifference))}
+                </div>
+                <p className="text-gray-600 text-sm">
+                  {bankBalanceDifference >= 0 ? 'فائض' : 'عجز'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Detailed Bank Balance Analysis */}
+        <Card className="bg-gradient-to-br from-slate-50 to-gray-50 border-0 shadow-lg mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-emerald-700 text-xl">
-              <Banknote className="h-6 w-6" />
-              صافي رصيد البنك
+            <CardTitle className="flex items-center gap-2 text-slate-700">
+              <Calculator className="h-5 w-5" />
+              تحليل مفصل لرصيد البنك
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-center">
-              <div className="text-5xl font-bold text-emerald-600 mb-4">
-                {formatCurrency(netBankBalance)}
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Net Bank Balance Calculation */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-blue-700 mb-3">حساب صافي رصيد البنك:</h4>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">رأس المال على مدى السنة:</span>
+                  <span className="font-semibold text-blue-600">{formatCurrency(capitalOverYear)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">الإيرادات:</span>
+                  <span className="font-semibold text-green-600">+ {formatCurrency(totalRevenues)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">التغطيات:</span>
+                  <span className="font-semibold text-green-600">+ {formatCurrency(totalCoverages)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">المصروفات:</span>
+                  <span className="font-semibold text-red-600">- {formatCurrency(totalOfficeExpenses)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">إجمالي العملاء المعلقين:</span>
+                  <span className="font-semibold text-red-600">- {formatCurrency(totalPendingPayments)}</span>
+                </div>
+                <hr className="border-gray-200" />
+                <div className="flex justify-between text-lg font-bold">
+                  <span className="text-gray-800">صافي رصيد البنك:</span>
+                  <span className="text-blue-600">{formatCurrency(netBankBalance)}</span>
+                </div>
               </div>
-              <p className="text-gray-600 text-lg">الرصيد النهائي للبنك</p>
-              <div className="mt-4 p-4 bg-white/50 rounded-lg">
-                <p className="text-sm text-gray-700">
-                  المعادلة: رأس المال + الإيرادات + التغطيات - المصروفات - إجمالي العملاء المعلقين
-                </p>
+
+              {/* Comparison and Difference */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-green-700 mb-3">المقارنة والفرق:</h4>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">صافي رصيد البنك (محسوب):</span>
+                  <span className="font-semibold text-blue-600">{formatCurrency(netBankBalance)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">الرصيد الفعلي للبنك:</span>
+                  <span className="font-semibold text-green-600">{formatCurrency(actualBankBalance)}</span>
+                </div>
+                <hr className="border-gray-200" />
+                <div className="flex justify-between text-lg font-bold">
+                  <span className="text-gray-800">الفرق:</span>
+                  <span className={bankBalanceDifference >= 0 ? "text-green-600" : "text-red-600"}>
+                    {bankBalanceDifference >= 0 ? "+" : "-"}{formatCurrency(Math.abs(bankBalanceDifference))}
+                  </span>
+                </div>
+                <div className="mt-3 p-3 rounded-lg bg-white/70">
+                  <p className={`text-sm font-medium ${bankBalanceDifference >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                    {bankBalanceDifference >= 0 
+                      ? `يوجد فائض في الرصيد بمقدار ${formatCurrency(bankBalanceDifference)}`
+                      : `يوجد عجز في الرصيد بمقدار ${formatCurrency(Math.abs(bankBalanceDifference))}`
+                    }
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -182,45 +296,6 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Bank Balance Calculation */}
-        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-0 shadow-lg mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-700">
-              <Calculator className="h-5 w-5" />
-              حساب صافي رصيد البنك
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-600">رأس المال:</span>
-              <span className="font-semibold text-blue-600">{formatCurrency(capitalAmount)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">الإيرادات:</span>
-              <span className="font-semibold text-green-600">+ {formatCurrency(totalRevenues)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">التغطيات:</span>
-              <span className="font-semibold text-green-600">+ {formatCurrency(totalCoverages)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">المصروفات:</span>
-              <span className="font-semibold text-red-600">- {formatCurrency(totalOfficeExpenses)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">إجمالي العملاء المعلقين:</span>
-              <span className="font-semibold text-red-600">- {formatCurrency(totalPendingPayments)}</span>
-            </div>
-            <hr className="border-gray-200" />
-            <div className="flex justify-between text-lg font-bold">
-              <span className="text-gray-800">صافي رصيد البنك:</span>
-              <span className={netBankBalance >= 0 ? "text-green-600" : "text-red-600"}>
-                {formatCurrency(netBankBalance)}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
