@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Expense, 
@@ -298,7 +299,10 @@ export const getCapitalEntries = async (): Promise<CapitalEntry[]> => {
     .order('date', { ascending: false });
   
   if (error) throw error;
-  return data || [];
+  return data?.map(entry => ({
+    ...entry,
+    type: entry.type as 'increase' | 'decrease'
+  })) || [];
 };
 
 export const addCapitalEntry = async (entry: Omit<CapitalEntry, 'id'>): Promise<CapitalEntry> => {
@@ -313,7 +317,10 @@ export const addCapitalEntry = async (entry: Omit<CapitalEntry, 'id'>): Promise<
   // تحديث حساب البنك الرئيسي تلقائياً
   await updateBankAccountForCapitalEntry(entry);
   
-  return data;
+  return {
+    ...data,
+    type: data.type as 'increase' | 'decrease'
+  };
 };
 
 export const deleteCapitalEntry = async (id: string): Promise<void> => {
