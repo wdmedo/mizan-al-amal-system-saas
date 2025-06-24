@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingDown, Users, UserCheck, Briefcase, Shield, FileText, Calculator, TrendingUp, DollarSign, Banknote, AlertTriangle } from 'lucide-react';
@@ -23,6 +22,7 @@ const Dashboard = () => {
   const totalEmployeeSalaries = data.employees.reduce((sum, employee) => sum + employee.salary, 0);
   
   const totalCoverages = data.coverages.reduce((sum, coverage) => sum + coverage.amount, 0);
+  const totalRemainingCoverages = data.coverages.reduce((sum, coverage) => sum + coverage.remaining, 0);
   
   // حساب رأس المال على مدى السنة من حركات رأس المال
   const capitalOverYear = data.capitalEntries.reduce((sum, entry) => {
@@ -38,8 +38,8 @@ const Dashboard = () => {
   // المصروفات = إجمالي رواتب الموظفين + مصروفات المكتب
   const totalOfficeExpenses = totalEmployeeSalaries + totalExpenses;
   
-  // صافي رصيد البنك = رأس المال على مدى السنة + الإيرادات + التغطيات - المصروفات - إجمالي العملاء المعلقين
-  const netBankBalance = capitalOverYear + totalRevenues + totalCoverages - totalOfficeExpenses - totalPendingPayments;
+  // صافي رصيد البنك = رأس المال على مدى السنة + الإيرادات + التغطيات - إجمالي المتبقي من التغطيات - المصروفات - إجمالي العملاء المعلقين
+  const netBankBalance = capitalOverYear + totalRevenues + totalCoverages - totalRemainingCoverages - totalOfficeExpenses - totalPendingPayments;
   
   // الفرق بين صافي رصيد البنك والرصيد الفعلي
   const bankBalanceDifference = netBankBalance - actualBankBalance;
@@ -199,6 +199,10 @@ const Dashboard = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-600">التغطيات:</span>
                   <span className="font-semibold text-green-600">+ {formatCurrency(totalCoverages)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">إجمالي المتبقي من التغطيات:</span>
+                  <span className="font-semibold text-red-600">- {formatCurrency(totalRemainingCoverages)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">المصروفات:</span>
