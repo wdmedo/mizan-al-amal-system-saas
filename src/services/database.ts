@@ -9,8 +9,7 @@ import {
   Account,
   CapitalEntry,
   EmployeeTransaction,
-  CoverageTransaction,
-  ProductDifference
+  CoverageTransaction
 } from '@/types/accounting';
 
 // Helper function to transform database row to PendingCustomer
