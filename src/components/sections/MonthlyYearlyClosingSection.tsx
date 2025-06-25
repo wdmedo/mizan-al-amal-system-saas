@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,7 +32,7 @@ const MonthlyYearlyClosingSection = () => {
 
     const totalExpenses = periodExpenses.reduce((sum, expense) => sum + expense.amount, 0);
     const totalRevenue = periodCompletedCustomers.reduce((sum, customer) => sum + customer.netProfit, 0);
-    const totalProductDifference = periodCompletedCustomers.reduce((sum, customer) => sum + customer.productDifference, 0);
+    const totalProductDifference = data.productDifferences.reduce((sum, diff) => sum + diff.amount, 0);
 
     return {
       totalExpenses,

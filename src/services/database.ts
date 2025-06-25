@@ -192,6 +192,7 @@ export const addCompletedCustomer = async (customer: Omit<CompletedCustomer, 'id
     fixed_interest: customer.fixedInterest,
     broker_percentage: customer.brokerInterest,
     net_profit: customer.netProfit,
+    product_difference: 0, // Default value for existing database schema
     total_payment: customer.amount + customer.fixedInterest
   };
 
