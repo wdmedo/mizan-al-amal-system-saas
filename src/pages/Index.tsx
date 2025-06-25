@@ -12,10 +12,11 @@ import AccountsSection from '@/components/sections/AccountsSection';
 import MonthlyYearlyClosingSection from '@/components/sections/MonthlyYearlyClosingSection';
 import CapitalOverYearSection from '@/components/sections/CapitalOverYearSection';
 import { useAuth } from '@/hooks/useAuth';
+import { useLocation } from 'react-router-dom';
 
 const Index = () => {
-  const [activeSection, setActiveSection] = useState('dashboard');
   const { isLoggedIn, login } = useAuth();
+  const location = useLocation();
 
   // إذا لم يكن المستخدم مسجل الدخول، عرض نموذج تسجيل الدخول
   if (!isLoggedIn) {
@@ -23,24 +24,24 @@ const Index = () => {
   }
 
   const renderSection = () => {
-    switch (activeSection) {
-      case 'dashboard':
+    switch (location.pathname) {
+      case '/':
         return <Dashboard />;
-      case 'expenses':
+      case '/expenses':
         return <ExpensesSection />;
-      case 'pending-customers':
+      case '/pending-customers':
         return <PendingCustomersSection />;
-      case 'completed-customers':
+      case '/completed-customers':
         return <CompletedCustomersSection />;
-      case 'employees':
+      case '/employees':
         return <EmployeesSection />;
-      case 'coverages':
+      case '/coverages':
         return <CoveragesSection />;
-      case 'accounts':
+      case '/accounts':
         return <AccountsSection />;
-      case 'monthly-yearly-closing':
+      case '/closing':
         return <MonthlyYearlyClosingSection />;
-      case 'capital-over-year':
+      case '/capital':
         return <CapitalOverYearSection />;
       default:
         return <Dashboard />;
@@ -48,7 +49,7 @@ const Index = () => {
   };
 
   return (
-    <Layout activeSection={activeSection} onSectionChange={setActiveSection}>
+    <Layout>
       {renderSection()}
     </Layout>
   );

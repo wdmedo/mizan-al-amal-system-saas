@@ -371,15 +371,15 @@ export const deleteCoverage = async (id: string): Promise<void> => {
 };
 
 // Product Differences - Remove these functions
-export const getProductDifferences = async (): Promise<ProductDifference[]> => {
+export const getProductDifferences = async () => {
   return [];
 };
 
-export const addProductDifference = async (productDifference: Omit<ProductDifference, 'id'>): Promise<ProductDifference> => {
+export const addProductDifference = async () => {
   throw new Error('Product differences feature has been removed');
 };
 
-export const deleteProductDifference = async (id: string): Promise<void> => {
+export const deleteProductDifference = async () => {
   throw new Error('Product differences feature has been removed');
 };
 
