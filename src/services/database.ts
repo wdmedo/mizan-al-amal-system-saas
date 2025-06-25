@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Expense, 
@@ -217,17 +216,16 @@ export const deleteCompletedCustomer = async (id: string): Promise<void> => {
 
 // Employees
 export const getEmployees = async (): Promise<Employee[]> => {
-  // For now, return employees without transactions since we don't have the tables yet
-  const { data, error } = await supabase
+  const { data: employees, error } = await supabase
     .from('employees')
-    .select('*')
+    .select(`
+      *,
+      employee_transactions (*)
+    `)
     .order('created_at', { ascending: false });
   
   if (error) throw error;
-  return data?.map(employee => ({
-    ...employee,
-    transactions: []
-  })) || [];
+  return employees?.map(employee => transformEmployee(employee)) || [];
 };
 
 export const addEmployee = async (employee: Omit<Employee, 'id'>): Promise<Employee> => {
@@ -257,55 +255,90 @@ export const deleteEmployee = async (id: string): Promise<void> => {
   if (error) throw error;
 };
 
-// Employee Transactions (placeholder functions for now)
+// Employee Transactions
 export const addEmployeeTransaction = async (transaction: Omit<EmployeeTransaction, 'id'> & { employeeId: string }): Promise<EmployeeTransaction> => {
-  // For now, just return a mock transaction since we don't have the table yet
-  const mockTransaction: EmployeeTransaction = {
-    id: crypto.randomUUID(),
+  const dbTransaction = {
+    employee_id: transaction.employeeId,
     amount: transaction.amount,
     type: transaction.type,
     description: transaction.description,
     date: transaction.date
   };
-  return mockTransaction;
+
+  const { data, error } = await supabase
+    .from('employee_transactions')
+    .insert(dbTransaction)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  
+  return {
+    id: data.id,
+    amount: data.amount,
+    type: data.type as 'advance' | 'payment',
+    description: data.description,
+    date: data.date
+  };
 };
 
 export const deleteEmployeeTransaction = async (id: string): Promise<void> => {
-  // Placeholder function
-  console.log('Delete employee transaction:', id);
+  const { error } = await supabase
+    .from('employee_transactions')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
 };
 
-// Coverage Transactions (placeholder functions for now)
+// Coverage Transactions
 export const addCoverageTransaction = async (transaction: Omit<CoverageTransaction, 'id'> & { coverageId: string }): Promise<CoverageTransaction> => {
-  // For now, just return a mock transaction since we don't have the table yet
-  const mockTransaction: CoverageTransaction = {
-    id: crypto.randomUUID(),
+  const dbTransaction = {
+    coverage_id: transaction.coverageId,
     amount: transaction.amount,
     type: transaction.type,
     description: transaction.description,
     date: transaction.date
   };
-  return mockTransaction;
+
+  const { data, error } = await supabase
+    .from('coverage_transactions')
+    .insert(dbTransaction)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  
+  return {
+    id: data.id,
+    amount: data.amount,
+    type: data.type as 'payment' | 'refund',
+    description: data.description,
+    date: data.date
+  };
 };
 
 export const deleteCoverageTransaction = async (id: string): Promise<void> => {
-  // Placeholder function
-  console.log('Delete coverage transaction:', id);
+  const { error } = await supabase
+    .from('coverage_transactions')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
 };
 
 // Coverages
 export const getCoverages = async (): Promise<Coverage[]> => {
-  // For now, return coverages without transactions since we don't have the tables yet
-  const { data, error } = await supabase
+  const { data: coverages, error } = await supabase
     .from('coverages')
-    .select('*')
+    .select(`
+      *,
+      coverage_transactions (*)
+    `)
     .order('created_at', { ascending: false });
   
   if (error) throw error;
-  return data?.map(coverage => transformCoverage({
-    ...coverage,
-    coverage_transactions: []
-  })) || [];
+  return coverages?.map(coverage => transformCoverage(coverage)) || [];
 };
 
 export const addCoverage = async (coverage: Omit<Coverage, 'id'>): Promise<Coverage> => {
@@ -338,28 +371,17 @@ export const deleteCoverage = async (id: string): Promise<void> => {
   if (error) throw error;
 };
 
-// Product Differences (placeholder functions for now)
+// Product Differences - Remove these functions
 export const getProductDifferences = async (): Promise<ProductDifference[]> => {
-  // For now, return empty array since we don't have the table yet
   return [];
 };
 
 export const addProductDifference = async (productDifference: Omit<ProductDifference, 'id'>): Promise<ProductDifference> => {
-  // For now, just return a mock product difference since we don't have the table yet
-  const mockProductDifference: ProductDifference = {
-    id: crypto.randomUUID(),
-    customerId: productDifference.customerId,
-    customerName: productDifference.customerName,
-    amount: productDifference.amount,
-    description: productDifference.description,
-    date: productDifference.date
-  };
-  return mockProductDifference;
+  throw new Error('Product differences feature has been removed');
 };
 
 export const deleteProductDifference = async (id: string): Promise<void> => {
-  // Placeholder function
-  console.log('Delete product difference:', id);
+  throw new Error('Product differences feature has been removed');
 };
 
 // Accounts

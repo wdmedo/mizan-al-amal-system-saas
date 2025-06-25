@@ -1,4 +1,3 @@
-
 export interface Expense {
   id: string;
   date: string;
@@ -78,15 +77,6 @@ export interface CapitalEntry {
   description: string;
 }
 
-export interface ProductDifference {
-  id: string;
-  customerId: string;
-  customerName: string;
-  amount: number;
-  description: string;
-  date: string;
-}
-
 export interface AccountingData {
   expenses: Expense[];
   pendingCustomers: PendingCustomer[];
@@ -95,5 +85,4 @@ export interface AccountingData {
   coverages: Coverage[];
   accounts: Account[];
   capitalEntries: CapitalEntry[];
-  productDifferences: ProductDifference[];
 }
