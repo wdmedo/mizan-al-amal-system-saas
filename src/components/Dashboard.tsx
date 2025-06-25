@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingDown, Users, UserCheck, Briefcase, Shield, FileText, Calculator, TrendingUp, DollarSign, Banknote, AlertTriangle } from 'lucide-react';
@@ -18,13 +17,15 @@ const Dashboard = () => {
   
   const totalCompletedProfit = data.completedCustomers.reduce((sum, customer) => sum + customer.netProfit, 0);
   const totalCompletedCapital = data.completedCustomers.reduce((sum, customer) => sum + customer.amount, 0);
-  const totalProductDifference = data.completedCustomers.reduce((sum, customer) => sum + customer.productDifference, 0);
   
   const totalEmployeeAdvances = data.employees.reduce((sum, employee) => sum + employee.advances, 0);
   const totalEmployeeSalaries = data.employees.reduce((sum, employee) => sum + employee.salary, 0);
   
   const totalCoverages = data.coverages.reduce((sum, coverage) => sum + coverage.amount, 0);
   const totalRemainingCoverages = data.coverages.reduce((sum, coverage) => sum + coverage.remaining, 0);
+  
+  // حساب إجمالي فرق السلعة من الصفحة المخصصة
+  const totalProductDifference = data.productDifferences?.reduce((sum, item) => sum + item.amount, 0) || 0;
   
   // حساب رأس المال على مدى السنة من حركات رأس المال
   const capitalOverYear = data.capitalEntries.reduce((sum, entry) => {
@@ -34,8 +35,8 @@ const Dashboard = () => {
   // الرصيد الفعلي للبنك = إجمالي الأرصدة
   const actualBankBalance = data.accounts.reduce((sum, account) => sum + account.balance, 0);
   
-  // الإيرادات = إجمالي أرباح العملاء الخالصين + إجمالي فرق السلعة
-  const totalRevenues = totalCompletedProfit + totalProductDifference;
+  // الإيرادات = إجمالي أرباح العملاء الخالصين
+  const totalRevenues = totalCompletedProfit;
   
   // المصروفات = إجمالي رواتب الموظفين + مصروفات المكتب
   const totalOfficeExpenses = totalEmployeeSalaries + totalExpenses;
@@ -274,10 +275,6 @@ const Dashboard = () => {
                 <span className="text-gray-600">صافي أرباح العملاء الخالصين:</span>
                 <span className="font-semibold text-green-600">{formatCurrency(totalCompletedProfit)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">إجمالي فرق السلعة:</span>
-                <span className="font-semibold text-green-600">{formatCurrency(totalProductDifference)}</span>
-              </div>
               <hr className="border-gray-200" />
               <div className="flex justify-between text-lg font-bold">
                 <span className="text-gray-800">إجمالي الإيرادات:</span>
@@ -342,4 +339,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

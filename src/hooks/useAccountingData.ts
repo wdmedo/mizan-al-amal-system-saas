@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AccountingData } from '@/types/accounting';
 import * as db from '@/services/database';
@@ -43,6 +44,11 @@ export const useAccountingData = () => {
     queryFn: db.getCapitalEntries,
   });
 
+  const { data: productDifferences = [] } = useQuery({
+    queryKey: ['product-differences'],
+    queryFn: db.getProductDifferences,
+  });
+
   const data: AccountingData = {
     expenses,
     pendingCustomers,
@@ -50,7 +56,8 @@ export const useAccountingData = () => {
     employees,
     coverages,
     accounts,
-    capitalEntries
+    capitalEntries,
+    productDifferences
   };
 
   // Mutations for expenses
@@ -168,6 +175,29 @@ export const useAccountingData = () => {
     }
   });
 
+  // Mutations for employee transactions
+  const addEmployeeTransactionMutation = useMutation({
+    mutationFn: db.addEmployeeTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast({ title: "تمت إضافة المعاملة بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في إضافة المعاملة", variant: "destructive" });
+    }
+  });
+
+  const deleteEmployeeTransactionMutation = useMutation({
+    mutationFn: db.deleteEmployeeTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast({ title: "تم حذف المعاملة بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في حذف المعاملة", variant: "destructive" });
+    }
+  });
+
   // Mutations for coverages
   const addCoverageMutation = useMutation({
     mutationFn: db.addCoverage,
@@ -188,6 +218,52 @@ export const useAccountingData = () => {
     },
     onError: () => {
       toast({ title: "خطأ في حذف التغطية", variant: "destructive" });
+    }
+  });
+
+  // Mutations for coverage transactions
+  const addCoverageTransactionMutation = useMutation({
+    mutationFn: db.addCoverageTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coverages'] });
+      toast({ title: "تمت إضافة معاملة التغطية بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في إضافة معاملة التغطية", variant: "destructive" });
+    }
+  });
+
+  const deleteCoverageTransactionMutation = useMutation({
+    mutationFn: db.deleteCoverageTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coverages'] });
+      toast({ title: "تم حذف معاملة التغطية بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في حذف معاملة التغطية", variant: "destructive" });
+    }
+  });
+
+  // Mutations for product differences
+  const addProductDifferenceMutation = useMutation({
+    mutationFn: db.addProductDifference,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['product-differences'] });
+      toast({ title: "تمت إضافة فرق السلعة بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في إضافة فرق السلعة", variant: "destructive" });
+    }
+  });
+
+  const deleteProductDifferenceMutation = useMutation({
+    mutationFn: db.deleteProductDifference,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['product-differences'] });
+      toast({ title: "تم حذف فرق السلعة بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في حذف فرق السلعة", variant: "destructive" });
     }
   });
 
@@ -258,10 +334,18 @@ export const useAccountingData = () => {
     // Employee functions
     addEmployee: (employee: any) => addEmployeeMutation.mutate(employee),
     deleteEmployee: (id: string) => deleteEmployeeMutation.mutate(id),
+    addEmployeeTransaction: (transaction: any) => addEmployeeTransactionMutation.mutate(transaction),
+    deleteEmployeeTransaction: (id: string) => deleteEmployeeTransactionMutation.mutate(id),
     
     // Coverage functions
     addCoverage: (coverage: any) => addCoverageMutation.mutate(coverage),
     deleteCoverage: (id: string) => deleteCoverageMutation.mutate(id),
+    addCoverageTransaction: (transaction: any) => addCoverageTransactionMutation.mutate(transaction),
+    deleteCoverageTransaction: (id: string) => deleteCoverageTransactionMutation.mutate(id),
+    
+    // Product difference functions
+    addProductDifference: (productDifference: any) => addProductDifferenceMutation.mutate(productDifference),
+    deleteProductDifference: (id: string) => deleteProductDifferenceMutation.mutate(id),
     
     // Account functions
     addAccount: (account: any) => addAccountMutation.mutate(account),

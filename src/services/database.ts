@@ -8,7 +8,10 @@ import {
   Employee, 
   Coverage, 
   Account,
-  CapitalEntry
+  CapitalEntry,
+  EmployeeTransaction,
+  CoverageTransaction,
+  ProductDifference
 } from '@/types/accounting';
 
 // Helper function to transform database row to PendingCustomer
@@ -33,8 +36,22 @@ const transformCompletedCustomer = (row: any): CompletedCustomer => ({
   amount: row.amount,
   fixedInterest: row.fixed_interest,
   brokerInterest: row.broker_percentage,
-  productDifference: row.product_difference,
   netProfit: row.net_profit
+});
+
+// Helper function to transform database row to Employee
+const transformEmployee = (row: any): Employee => ({
+  id: row.id,
+  name: row.name,
+  salary: row.salary,
+  advances: row.advances,
+  transactions: row.employee_transactions?.map((transaction: any) => ({
+    id: transaction.id,
+    amount: transaction.amount,
+    type: transaction.type,
+    description: transaction.description,
+    date: transaction.date
+  })) || []
 });
 
 // Helper function to transform database row to Coverage
@@ -43,7 +60,14 @@ const transformCoverage = (row: any): Coverage => ({
   amount: row.amount,
   receivedFrom: row.received_from,
   receivedBy: row.received_by,
-  remaining: row.remaining
+  remaining: row.remaining,
+  transactions: row.coverage_transactions?.map((transaction: any) => ({
+    id: transaction.id,
+    amount: transaction.amount,
+    type: transaction.type,
+    description: transaction.description,
+    date: transaction.date
+  })) || []
 });
 
 // Expenses
@@ -167,7 +191,6 @@ export const addCompletedCustomer = async (customer: Omit<CompletedCustomer, 'id
     amount: customer.amount,
     fixed_interest: customer.fixedInterest,
     broker_percentage: customer.brokerInterest,
-    product_difference: customer.productDifference,
     net_profit: customer.netProfit,
     total_payment: customer.amount + customer.fixedInterest
   };
@@ -193,24 +216,35 @@ export const deleteCompletedCustomer = async (id: string): Promise<void> => {
 
 // Employees
 export const getEmployees = async (): Promise<Employee[]> => {
+  // For now, return employees without transactions since we don't have the tables yet
   const { data, error } = await supabase
     .from('employees')
     .select('*')
     .order('created_at', { ascending: false });
   
   if (error) throw error;
-  return data || [];
+  return data?.map(employee => ({
+    ...employee,
+    transactions: []
+  })) || [];
 };
 
 export const addEmployee = async (employee: Omit<Employee, 'id'>): Promise<Employee> => {
   const { data, error } = await supabase
     .from('employees')
-    .insert(employee)
+    .insert({
+      name: employee.name,
+      salary: employee.salary,
+      advances: employee.advances
+    })
     .select()
     .single();
   
   if (error) throw error;
-  return data;
+  return {
+    ...data,
+    transactions: []
+  };
 };
 
 export const deleteEmployee = async (id: string): Promise<void> => {
@@ -222,15 +256,55 @@ export const deleteEmployee = async (id: string): Promise<void> => {
   if (error) throw error;
 };
 
+// Employee Transactions (placeholder functions for now)
+export const addEmployeeTransaction = async (transaction: Omit<EmployeeTransaction, 'id'> & { employeeId: string }): Promise<EmployeeTransaction> => {
+  // For now, just return a mock transaction since we don't have the table yet
+  const mockTransaction: EmployeeTransaction = {
+    id: crypto.randomUUID(),
+    amount: transaction.amount,
+    type: transaction.type,
+    description: transaction.description,
+    date: transaction.date
+  };
+  return mockTransaction;
+};
+
+export const deleteEmployeeTransaction = async (id: string): Promise<void> => {
+  // Placeholder function
+  console.log('Delete employee transaction:', id);
+};
+
+// Coverage Transactions (placeholder functions for now)
+export const addCoverageTransaction = async (transaction: Omit<CoverageTransaction, 'id'> & { coverageId: string }): Promise<CoverageTransaction> => {
+  // For now, just return a mock transaction since we don't have the table yet
+  const mockTransaction: CoverageTransaction = {
+    id: crypto.randomUUID(),
+    amount: transaction.amount,
+    type: transaction.type,
+    description: transaction.description,
+    date: transaction.date
+  };
+  return mockTransaction;
+};
+
+export const deleteCoverageTransaction = async (id: string): Promise<void> => {
+  // Placeholder function
+  console.log('Delete coverage transaction:', id);
+};
+
 // Coverages
 export const getCoverages = async (): Promise<Coverage[]> => {
+  // For now, return coverages without transactions since we don't have the tables yet
   const { data, error } = await supabase
     .from('coverages')
     .select('*')
     .order('created_at', { ascending: false });
   
   if (error) throw error;
-  return data?.map(transformCoverage) || [];
+  return data?.map(coverage => transformCoverage({
+    ...coverage,
+    coverage_transactions: []
+  })) || [];
 };
 
 export const addCoverage = async (coverage: Omit<Coverage, 'id'>): Promise<Coverage> => {
@@ -248,7 +322,10 @@ export const addCoverage = async (coverage: Omit<Coverage, 'id'>): Promise<Cover
     .single();
   
   if (error) throw error;
-  return transformCoverage(data);
+  return transformCoverage({
+    ...data,
+    coverage_transactions: []
+  });
 };
 
 export const deleteCoverage = async (id: string): Promise<void> => {
@@ -258,6 +335,30 @@ export const deleteCoverage = async (id: string): Promise<void> => {
     .eq('id', id);
   
   if (error) throw error;
+};
+
+// Product Differences (placeholder functions for now)
+export const getProductDifferences = async (): Promise<ProductDifference[]> => {
+  // For now, return empty array since we don't have the table yet
+  return [];
+};
+
+export const addProductDifference = async (productDifference: Omit<ProductDifference, 'id'>): Promise<ProductDifference> => {
+  // For now, just return a mock product difference since we don't have the table yet
+  const mockProductDifference: ProductDifference = {
+    id: crypto.randomUUID(),
+    customerId: productDifference.customerId,
+    customerName: productDifference.customerName,
+    amount: productDifference.amount,
+    description: productDifference.description,
+    date: productDifference.date
+  };
+  return mockProductDifference;
+};
+
+export const deleteProductDifference = async (id: string): Promise<void> => {
+  // Placeholder function
+  console.log('Delete product difference:', id);
 };
 
 // Accounts
