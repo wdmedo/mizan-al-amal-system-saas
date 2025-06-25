@@ -168,52 +168,6 @@ export const useAccountingData = () => {
     }
   });
 
-  // Employee Transactions mutations
-  const addEmployeeTransactionMutation = useMutation({
-    mutationFn: db.addEmployeeTransaction,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-      toast({ title: "تمت إضافة المعاملة بنجاح" });
-    },
-    onError: () => {
-      toast({ title: "خطأ في إضافة المعاملة", variant: "destructive" });
-    }
-  });
-
-  const deleteEmployeeTransactionMutation = useMutation({
-    mutationFn: db.deleteEmployeeTransaction,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-      toast({ title: "تم حذف المعاملة بنجاح" });
-    },
-    onError: () => {
-      toast({ title: "خطأ في حذف المعاملة", variant: "destructive" });
-    }
-  });
-
-  // Coverage Transactions mutations
-  const addCoverageTransactionMutation = useMutation({
-    mutationFn: db.addCoverageTransaction,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coverages'] });
-      toast({ title: "تمت إضافة معاملة التغطية بنجاح" });
-    },
-    onError: () => {
-      toast({ title: "خطأ في إضافة معاملة التغطية", variant: "destructive" });
-    }
-  });
-
-  const deleteCoverageTransactionMutation = useMutation({
-    mutationFn: db.deleteCoverageTransaction,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coverages'] });
-      toast({ title: "تم حذف معاملة التغطية بنجاح" });
-    },
-    onError: () => {
-      toast({ title: "خطأ في حذف معاملة التغطية", variant: "destructive" });
-    }
-  });
-
   // Mutations for coverages
   const addCoverageMutation = useMutation({
     mutationFn: db.addCoverage,
@@ -304,14 +258,6 @@ export const useAccountingData = () => {
     // Employee functions
     addEmployee: (employee: any) => addEmployeeMutation.mutate(employee),
     deleteEmployee: (id: string) => deleteEmployeeMutation.mutate(id),
-    
-    // Employee transaction functions
-    addEmployeeTransaction: (transaction: any) => addEmployeeTransactionMutation.mutate(transaction),
-    deleteEmployeeTransaction: (id: string) => deleteEmployeeTransactionMutation.mutate(id),
-    
-    // Coverage transaction functions
-    addCoverageTransaction: (transaction: any) => addCoverageTransactionMutation.mutate(transaction),
-    deleteCoverageTransaction: (id: string) => deleteCoverageTransactionMutation.mutate(id),
     
     // Coverage functions
     addCoverage: (coverage: any) => addCoverageMutation.mutate(coverage),

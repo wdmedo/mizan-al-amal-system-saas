@@ -1,3 +1,4 @@
+
 export interface Expense {
   id: string;
   date: string;
@@ -27,6 +28,7 @@ export interface CompletedCustomer {
   amount: number;
   fixedInterest: number;
   brokerInterest: number;
+  productDifference: number;
   netProfit: number;
 }
 
@@ -35,15 +37,6 @@ export interface Employee {
   name: string;
   salary: number;
   advances: number;
-  transactions: EmployeeTransaction[];
-}
-
-export interface EmployeeTransaction {
-  id: string;
-  amount: number;
-  type: 'advance' | 'payment';
-  description: string;
-  date: string;
 }
 
 export interface Coverage {
@@ -52,15 +45,6 @@ export interface Coverage {
   receivedFrom: string;
   receivedBy: string;
   remaining: number;
-  transactions: CoverageTransaction[];
-}
-
-export interface CoverageTransaction {
-  id: string;
-  amount: number;
-  type: 'payment' | 'refund';
-  description: string;
-  date: string;
 }
 
 export interface Account {

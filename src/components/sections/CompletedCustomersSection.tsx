@@ -16,15 +16,17 @@ const CompletedCustomersSection = () => {
     phoneNumber: '',
     amount: '',
     fixedInterest: '',
-    brokerInterest: ''
+    brokerInterest: '',
+    productDifference: ''
   });
 
   const calculateNetProfit = (customer: any) => {
     const fixedInterest = parseFloat(customer.fixedInterest) || 0;
     const brokerInterest = parseFloat(customer.brokerInterest) || 0;
+    const productDifference = parseFloat(customer.productDifference) || 0;
     
-    // صافي الربح = الفائدة الثابتة - فائدة الوسيط
-    return fixedInterest - brokerInterest;
+    // صافي الربح = الفائدة الثابتة - فائدة الوسيط - فرق السلعة
+    return fixedInterest - brokerInterest - productDifference;
   };
 
   const handleAddCustomer = () => {
@@ -36,6 +38,7 @@ const CompletedCustomersSection = () => {
         amount: parseFloat(newCustomer.amount) || 0,
         fixedInterest: parseFloat(newCustomer.fixedInterest) || 0,
         brokerInterest: parseFloat(newCustomer.brokerInterest) || 0,
+        productDifference: parseFloat(newCustomer.productDifference) || 0,
         netProfit: calculateNetProfit(newCustomer)
       };
       
@@ -46,7 +49,8 @@ const CompletedCustomersSection = () => {
         phoneNumber: '',
         amount: '',
         fixedInterest: '',
-        brokerInterest: ''
+        brokerInterest: '',
+        productDifference: ''
       });
     }
   };
@@ -78,7 +82,7 @@ const CompletedCustomersSection = () => {
         </h2>
         <p className="text-gray-600">إدارة العملاء المكتملين وحساب الأرباح النهائية</p>
         <p className="text-sm text-gray-500 mt-2">
-          معادلة الحساب: صافي الربح = الفائدة الثابتة - فائدة الوسيط
+          معادلة الحساب: صافي الربح = الفائدة الثابتة - فائدة الوسيط - فرق السلعة
         </p>
         <p className="text-xs text-gray-400 mt-1">
           المبلغ الأساسي يُعتبر رأس مال منفصل يعود إلى الحسابات الأساسية
@@ -194,7 +198,17 @@ const CompletedCustomersSection = () => {
                 onChange={(e) => setNewCustomer({ ...newCustomer, brokerInterest: e.target.value })}
               />
             </div>
-            <div className="flex items-end md:col-span-2 lg:col-span-3">
+            <div>
+              <Label htmlFor="productDifference">فرق السلعة</Label>
+              <Input
+                id="productDifference"
+                type="number"
+                placeholder="0.00"
+                value={newCustomer.productDifference}
+                onChange={(e) => setNewCustomer({ ...newCustomer, productDifference: e.target.value })}
+              />
+            </div>
+            <div className="flex items-end md:col-span-2 lg:col-span-2">
               <div className="w-full">
                 <Label>صافي الربح المتوقع</Label>
                 <div className="p-2 bg-gray-100 rounded-md text-center font-semibold text-green-600">
@@ -252,7 +266,7 @@ const CompletedCustomersSection = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-sm">
                   <div>
                     <div className="text-gray-600">رأس المال</div>
                     <div className="font-semibold text-blue-600">{formatCurrency(customer.amount)}</div>
@@ -264,6 +278,10 @@ const CompletedCustomersSection = () => {
                   <div>
                     <div className="text-gray-600">فائدة الوسيط</div>
                     <div className="font-semibold text-red-600">{formatCurrency(customer.brokerInterest)}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-600">فرق السلعة</div>
+                    <div className="font-semibold text-red-600">{formatCurrency(customer.productDifference)}</div>
                   </div>
                   <div className="md:col-span-3 lg:col-span-1">
                     <div className="text-gray-600">صافي الربح</div>

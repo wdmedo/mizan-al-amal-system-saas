@@ -33,12 +33,13 @@ const MonthlyYearlyClosingSection = () => {
 
     const totalExpenses = periodExpenses.reduce((sum, expense) => sum + expense.amount, 0);
     const totalRevenue = periodCompletedCustomers.reduce((sum, customer) => sum + customer.netProfit, 0);
+    const totalProductDifference = periodCompletedCustomers.reduce((sum, customer) => sum + customer.productDifference, 0);
 
     return {
       totalExpenses,
       totalRevenue,
-      totalProductDifference: 0, // إزالة فرق السلعة
-      netProfit: totalRevenue - totalExpenses,
+      totalProductDifference,
+      netProfit: totalRevenue + totalProductDifference - totalExpenses,
       transactionCount: periodExpenses.length + periodCompletedCustomers.length
     };
   };
@@ -102,13 +103,23 @@ const MonthlyYearlyClosingSection = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* ملخص الإيرادات */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="bg-green-50 border-green-200">
                 <CardContent className="p-4 text-center">
                   <TrendingUp className="h-8 w-8 text-green-600 mx-auto mb-2" />
                   <p className="text-sm text-green-700">إجمالي الإيرادات</p>
                   <p className="text-2xl font-bold text-green-800">
                     {periodData.totalRevenue.toLocaleString()} ر.س
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="p-4 text-center">
+                  <TrendingUp className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                  <p className="text-sm text-blue-700">فرق السلعة</p>
+                  <p className="text-2xl font-bold text-blue-800">
+                    {periodData.totalProductDifference.toLocaleString()} ر.س
                   </p>
                 </CardContent>
               </Card>

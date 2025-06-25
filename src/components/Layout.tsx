@@ -1,99 +1,106 @@
-import React from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  DollarSign, 
-  Users, 
-  UserCheck, 
-  Briefcase, 
-  Shield, 
-  Building, 
-  TrendingUp, 
-  Calendar,
-  LogOut
-} from 'lucide-react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Menu, X, Home, TrendingDown, Users, UserCheck, Briefcase, Shield, FileText, Calendar, TrendingUp, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
-const Layout = () => {
-  const location = useLocation();
-  const { logout } = useAuth();
+interface LayoutProps {
+  children: React.ReactNode;
+  activeSection: string;
+  onSectionChange: (section: string) => void;
+}
 
-  const navigation = [
-    { name: 'الرئيسية', href: '/', icon: Home },
-    { name: 'المصروفات', href: '/expenses', icon: DollarSign },
-    { name: 'العملاء المعلقين', href: '/pending-customers', icon: Users },
-    { name: 'العملاء الخالصين', href: '/completed-customers', icon: UserCheck },
-    { name: 'الموظفين', href: '/employees', icon: Briefcase },
-    { name: 'التغطيات', href: '/coverages', icon: Shield },
-    { name: 'الحسابات', href: '/accounts', icon: Building },
-    { name: 'رأس المال', href: '/capital', icon: TrendingUp },
-    { name: 'الإقفال الشهري/السنوي', href: '/closing', icon: Calendar },
+const Layout = ({ children, activeSection, onSectionChange }: LayoutProps) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { username, logout } = useAuth();
+
+  const menuItems = [
+    { id: 'dashboard', label: 'لوحة التحكم', icon: Home },
+    { id: 'expenses', label: 'المصروفات', icon: TrendingDown },
+    { id: 'pending-customers', label: 'العملاء المعلقين', icon: Users },
+    { id: 'completed-customers', label: 'العملاء الخالصين', icon: UserCheck },
+    { id: 'employees', label: 'الموظفين', icon: Briefcase },
+    { id: 'coverages', label: 'التغطيات', icon: Shield },
+    { id: 'accounts', label: 'ملخص الحسابات', icon: FileText },
+    { id: 'monthly-yearly-closing', label: 'التقفيل الشهري والسنوي', icon: Calendar },
+    { id: 'capital-over-year', label: 'رأس المال على مدى السنة', icon: TrendingUp }
   ];
 
-  const handleLogout = () => {
-    logout();
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="hidden md:flex md:w-64 md:flex-col">
-          <div className="flex min-h-0 flex-1 flex-col bg-white shadow-lg">
-            <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
-              <div className="flex items-center flex-shrink-0 px-4 mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">نظام المحاسبة</h1>
-              </div>
-              <nav className="mt-5 flex-1 space-y-1 bg-white px-2">
-                {navigation.map((item) => {
-                  const isActive = location.pathname === item.href;
-                  return (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={`${
-                        isActive
-                          ? 'bg-blue-50 border-r-4 border-blue-500 text-blue-700'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      } group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors`}
-                    >
-                      <item.icon
-                        className={`${
-                          isActive ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
-                        } ml-3 flex-shrink-0 h-6 w-6`}
-                        aria-hidden="true"
-                      />
-                      {item.name}
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
-            <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                className="w-full flex items-center justify-center"
-              >
-                <LogOut className="h-4 w-4 ml-2" />
-                تسجيل الخروج
-              </Button>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" dir="rtl">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-lg border-b border-blue-100 shadow-sm sticky top-0 z-50">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden"
+            >
+              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+            <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              نظام المحاسبة الشامل لمؤسسة تمام السداد
+            </h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">مرحباً، {username}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={logout}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              تسجيل الخروج
+            </Button>
           </div>
         </div>
+      </header>
 
-        {/* Main content */}
-        <div className="flex flex-col w-0 flex-1 overflow-hidden">
-          <main className="flex-1 relative overflow-y-auto focus:outline-none">
-            <div className="py-6">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-                <Outlet />
-              </div>
-            </div>
-          </main>
-        </div>
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 right-0 z-40 w-64 bg-white/90 backdrop-blur-lg border-l border-blue-100 shadow-lg transition-transform duration-300 ease-in-out`}>
+          <nav className="p-4 space-y-2 mt-4">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Button
+                  key={item.id}
+                  variant={activeSection === item.id ? "default" : "ghost"}
+                  className={`w-full justify-start gap-3 h-12 text-right ${
+                    activeSection === item.id 
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' 
+                      : 'hover:bg-blue-50 text-gray-700'
+                  }`}
+                  onClick={() => {
+                    onSectionChange(item.id);
+                    setSidebarOpen(false);
+                  }}
+                >
+                  <Icon className="h-5 w-5" />
+                  {item.label}
+                </Button>
+              );
+            })}
+          </nav>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 lg:mr-0 transition-all duration-300">
+          <div className="p-6">
+            {children}
+          </div>
+        </main>
       </div>
+
+      {/* Overlay for mobile */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-30 lg:hidden" 
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 };

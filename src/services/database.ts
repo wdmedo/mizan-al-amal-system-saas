@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Expense, 
@@ -7,9 +8,7 @@ import {
   Employee, 
   Coverage, 
   Account,
-  CapitalEntry,
-  EmployeeTransaction,
-  CoverageTransaction
+  CapitalEntry
 } from '@/types/accounting';
 
 // Helper function to transform database row to PendingCustomer
@@ -34,22 +33,8 @@ const transformCompletedCustomer = (row: any): CompletedCustomer => ({
   amount: row.amount,
   fixedInterest: row.fixed_interest,
   brokerInterest: row.broker_percentage,
+  productDifference: row.product_difference,
   netProfit: row.net_profit
-});
-
-// Helper function to transform database row to Employee
-const transformEmployee = (row: any): Employee => ({
-  id: row.id,
-  name: row.name,
-  salary: row.salary,
-  advances: row.advances,
-  transactions: row.employee_transactions?.map((transaction: any) => ({
-    id: transaction.id,
-    amount: transaction.amount,
-    type: transaction.type,
-    description: transaction.description,
-    date: transaction.date
-  })) || []
 });
 
 // Helper function to transform database row to Coverage
@@ -58,14 +43,7 @@ const transformCoverage = (row: any): Coverage => ({
   amount: row.amount,
   receivedFrom: row.received_from,
   receivedBy: row.received_by,
-  remaining: row.remaining,
-  transactions: row.coverage_transactions?.map((transaction: any) => ({
-    id: transaction.id,
-    amount: transaction.amount,
-    type: transaction.type,
-    description: transaction.description,
-    date: transaction.date
-  })) || []
+  remaining: row.remaining
 });
 
 // Expenses
@@ -189,8 +167,8 @@ export const addCompletedCustomer = async (customer: Omit<CompletedCustomer, 'id
     amount: customer.amount,
     fixed_interest: customer.fixedInterest,
     broker_percentage: customer.brokerInterest,
+    product_difference: customer.productDifference,
     net_profit: customer.netProfit,
-    product_difference: 0, // Default value for existing database schema
     total_payment: customer.amount + customer.fixedInterest
   };
 
@@ -215,34 +193,24 @@ export const deleteCompletedCustomer = async (id: string): Promise<void> => {
 
 // Employees
 export const getEmployees = async (): Promise<Employee[]> => {
-  const { data: employees, error } = await supabase
+  const { data, error } = await supabase
     .from('employees')
-    .select(`
-      *,
-      employee_transactions (*)
-    `)
+    .select('*')
     .order('created_at', { ascending: false });
   
   if (error) throw error;
-  return employees?.map(employee => transformEmployee(employee)) || [];
+  return data || [];
 };
 
 export const addEmployee = async (employee: Omit<Employee, 'id'>): Promise<Employee> => {
   const { data, error } = await supabase
     .from('employees')
-    .insert({
-      name: employee.name,
-      salary: employee.salary,
-      advances: employee.advances
-    })
+    .insert(employee)
     .select()
     .single();
   
   if (error) throw error;
-  return {
-    ...data,
-    transactions: []
-  };
+  return data;
 };
 
 export const deleteEmployee = async (id: string): Promise<void> => {
@@ -254,90 +222,15 @@ export const deleteEmployee = async (id: string): Promise<void> => {
   if (error) throw error;
 };
 
-// Employee Transactions
-export const addEmployeeTransaction = async (transaction: Omit<EmployeeTransaction, 'id'> & { employeeId: string }): Promise<EmployeeTransaction> => {
-  const dbTransaction = {
-    employee_id: transaction.employeeId,
-    amount: transaction.amount,
-    type: transaction.type,
-    description: transaction.description,
-    date: transaction.date
-  };
-
-  const { data, error } = await supabase
-    .from('employee_transactions')
-    .insert(dbTransaction)
-    .select()
-    .single();
-  
-  if (error) throw error;
-  
-  return {
-    id: data.id,
-    amount: data.amount,
-    type: data.type as 'advance' | 'payment',
-    description: data.description,
-    date: data.date
-  };
-};
-
-export const deleteEmployeeTransaction = async (id: string): Promise<void> => {
-  const { error } = await supabase
-    .from('employee_transactions')
-    .delete()
-    .eq('id', id);
-  
-  if (error) throw error;
-};
-
-// Coverage Transactions
-export const addCoverageTransaction = async (transaction: Omit<CoverageTransaction, 'id'> & { coverageId: string }): Promise<CoverageTransaction> => {
-  const dbTransaction = {
-    coverage_id: transaction.coverageId,
-    amount: transaction.amount,
-    type: transaction.type,
-    description: transaction.description,
-    date: transaction.date
-  };
-
-  const { data, error } = await supabase
-    .from('coverage_transactions')
-    .insert(dbTransaction)
-    .select()
-    .single();
-  
-  if (error) throw error;
-  
-  return {
-    id: data.id,
-    amount: data.amount,
-    type: data.type as 'payment' | 'refund',
-    description: data.description,
-    date: data.date
-  };
-};
-
-export const deleteCoverageTransaction = async (id: string): Promise<void> => {
-  const { error } = await supabase
-    .from('coverage_transactions')
-    .delete()
-    .eq('id', id);
-  
-  if (error) throw error;
-};
-
 // Coverages
 export const getCoverages = async (): Promise<Coverage[]> => {
-  const { data: coverages, error } = await supabase
+  const { data, error } = await supabase
     .from('coverages')
-    .select(`
-      *,
-      coverage_transactions (*)
-    `)
+    .select('*')
     .order('created_at', { ascending: false });
   
   if (error) throw error;
-  return coverages?.map(coverage => transformCoverage(coverage)) || [];
+  return data?.map(transformCoverage) || [];
 };
 
 export const addCoverage = async (coverage: Omit<Coverage, 'id'>): Promise<Coverage> => {
@@ -355,10 +248,7 @@ export const addCoverage = async (coverage: Omit<Coverage, 'id'>): Promise<Cover
     .single();
   
   if (error) throw error;
-  return transformCoverage({
-    ...data,
-    coverage_transactions: []
-  });
+  return transformCoverage(data);
 };
 
 export const deleteCoverage = async (id: string): Promise<void> => {
@@ -368,19 +258,6 @@ export const deleteCoverage = async (id: string): Promise<void> => {
     .eq('id', id);
   
   if (error) throw error;
-};
-
-// Product Differences - Remove these functions
-export const getProductDifferences = async () => {
-  return [];
-};
-
-export const addProductDifference = async () => {
-  throw new Error('Product differences feature has been removed');
-};
-
-export const deleteProductDifference = async () => {
-  throw new Error('Product differences feature has been removed');
 };
 
 // Accounts
