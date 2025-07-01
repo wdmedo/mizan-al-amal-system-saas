@@ -48,7 +48,7 @@ const transformCoverage = (row: any): Coverage => ({
   transactions: row.coverage_transactions?.map((transaction: any) => ({
     id: transaction.id,
     coverageId: transaction.coverage_id,
-    type: transaction.type,
+    type: transaction.type as 'payment' | 'adjustment' | 'refund',
     amount: transaction.amount,
     description: transaction.description,
     date: transaction.date
@@ -64,7 +64,7 @@ const transformEmployee = (row: any): Employee => ({
   transactions: row.employee_transactions?.map((transaction: any) => ({
     id: transaction.id,
     employeeId: transaction.employee_id,
-    type: transaction.type,
+    type: transaction.type as 'advance' | 'salary_payment' | 'deduction' | 'bonus',
     amount: transaction.amount,
     description: transaction.description,
     date: transaction.date
