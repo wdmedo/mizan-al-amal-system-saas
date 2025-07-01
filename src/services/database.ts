@@ -1,100 +1,16 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { 
-  Customer, 
   Employee, 
   Coverage, 
   Expense, 
-  Transaction,
   EmployeeTransaction,
-  CoverageTransaction
+  CoverageTransaction,
+  PendingCustomer,
+  CompletedCustomer,
+  Account,
+  CapitalEntry
 } from '@/types/accounting';
-
-export const saveCustomer = async (customer: Customer) => {
-  const { data, error } = await supabase
-    .from('customers')
-    .insert([{
-      name: customer.name,
-      phone: customer.phone,
-      national_id: customer.national_id,
-      coverage_amount: customer.coverage_amount,
-      monthly_payment: customer.monthly_payment,
-      payment_months: customer.payment_months,
-      start_date: customer.start_date,
-      status: customer.status,
-      remaining_amount: customer.remaining_amount,
-      paid_amount: customer.paid_amount
-    }])
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-};
-
-export const getCustomers = async (): Promise<Customer[]> => {
-  const { data, error } = await supabase
-    .from('customers')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return data || [];
-};
-
-export const saveEmployee = async (employee: Employee) => {
-  const { data, error } = await supabase
-    .from('employees')
-    .insert([{
-      name: employee.name,
-      position: employee.position,
-      salary: employee.salary,
-      phone: employee.phone,
-      national_id: employee.national_id,
-      hire_date: employee.hire_date
-    }])
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-};
-
-export const getEmployees = async (): Promise<Employee[]> => {
-  const { data, error } = await supabase
-    .from('employees')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return data || [];
-};
-
-export const saveCoverage = async (coverage: Coverage) => {
-  const { data, error } = await supabase
-    .from('coverages')
-    .insert([{
-      type: coverage.type,
-      amount: coverage.amount,
-      customer_name: coverage.customer_name,
-      description: coverage.description,
-      date: coverage.date
-    }])
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-};
-
-export const getCoverages = async (): Promise<Coverage[]> => {
-  const { data, error } = await supabase
-    .from('coverages')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return data || [];
-};
 
 export const saveExpense = async (expense: Expense) => {
   const { data, error } = await supabase
@@ -102,7 +18,6 @@ export const saveExpense = async (expense: Expense) => {
     .insert([{
       description: expense.description,
       amount: expense.amount,
-      category: expense.category,
       date: expense.date
     }])
     .select()
@@ -119,18 +34,64 @@ export const getExpenses = async (): Promise<Expense[]> => {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  return (data || []).map(item => ({
+    id: item.id,
+    date: item.date,
+    amount: item.amount,
+    description: item.description
+  }));
 };
 
-export const saveTransaction = async (transaction: Transaction) => {
+export const getPendingCustomers = async (): Promise<PendingCustomer[]> => {
   const { data, error } = await supabase
-    .from('transactions')
+    .from('pending_customers')
+    .select(`
+      *,
+      payments (*)
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data || []).map(customer => ({
+    id: customer.id,
+    name: customer.name,
+    idNumber: customer.id_number,
+    phoneNumber: customer.phone_number,
+    payments: customer.payments?.map((payment: any) => ({
+      id: payment.id,
+      amount: payment.amount,
+      source: payment.source
+    })) || []
+  }));
+};
+
+export const getCompletedCustomers = async (): Promise<CompletedCustomer[]> => {
+  const { data, error } = await supabase
+    .from('completed_customers')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data || []).map(customer => ({
+    id: customer.id,
+    name: customer.name,
+    idNumber: customer.id_number,
+    phoneNumber: customer.phone_number,
+    amount: customer.amount,
+    fixedInterest: customer.fixed_interest,
+    brokerInterest: customer.broker_percentage,
+    productDifference: customer.product_difference,
+    netProfit: customer.net_profit
+  }));
+};
+
+export const saveEmployee = async (employee: Employee) => {
+  const { data, error } = await supabase
+    .from('employees')
     .insert([{
-      customer_id: transaction.customer_id,
-      amount: transaction.amount,
-      type: transaction.type,
-      description: transaction.description,
-      date: transaction.date
+      name: employee.name,
+      salary: employee.salary,
+      advances: employee.advances || 0
     }])
     .select()
     .single();
@@ -139,28 +100,50 @@ export const saveTransaction = async (transaction: Transaction) => {
   return data;
 };
 
-export const getTransactions = async (): Promise<Transaction[]> => {
+export const getEmployees = async (): Promise<Employee[]> => {
   const { data, error } = await supabase
-    .from('transactions')
-    .select(`
-      *,
-      customers (
-        name
-      )
-    `)
+    .from('employees')
+    .select('*')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  
-  return (data || []).map(transaction => ({
-    id: transaction.id,
-    customer_id: transaction.customer_id,
-    amount: transaction.amount,
-    type: transaction.type,
-    description: transaction.description,
-    date: transaction.date,
-    customer_name: transaction.customers?.name || 'غير محدد',
-    created_at: transaction.created_at
+  return (data || []).map(employee => ({
+    id: employee.id,
+    name: employee.name,
+    salary: employee.salary,
+    advances: employee.advances || 0
+  }));
+};
+
+export const saveCoverage = async (coverage: Coverage) => {
+  const { data, error } = await supabase
+    .from('coverages')
+    .insert([{
+      amount: coverage.amount,
+      received_from: coverage.receivedFrom,
+      received_by: coverage.receivedBy,
+      remaining: coverage.remaining
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const getCoverages = async (): Promise<Coverage[]> => {
+  const { data, error } = await supabase
+    .from('coverages')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data || []).map(coverage => ({
+    id: coverage.id,
+    amount: coverage.amount,
+    receivedFrom: coverage.received_from,
+    receivedBy: coverage.received_by,
+    remaining: coverage.remaining
   }));
 };
 
@@ -168,7 +151,7 @@ export const saveEmployeeTransaction = async (transaction: EmployeeTransaction) 
   const { data, error } = await supabase
     .from('employee_transactions')
     .insert([{
-      employee_id: transaction.employee_id,
+      employee_id: transaction.employeeId,
       amount: transaction.amount,
       type: transaction.type,
       description: transaction.description,
@@ -196,13 +179,11 @@ export const getEmployeeTransactions = async (): Promise<EmployeeTransaction[]> 
   
   return (data || []).map(transaction => ({
     id: transaction.id,
-    employee_id: transaction.employee_id,
+    employeeId: transaction.employee_id,
     amount: transaction.amount,
     type: transaction.type as "advance" | "salary_payment" | "deduction" | "bonus",
     description: transaction.description,
-    date: transaction.date,
-    employee_name: transaction.employees?.name || 'غير محدد',
-    created_at: transaction.created_at
+    date: transaction.date
   }));
 };
 
@@ -210,7 +191,7 @@ export const saveCoverageTransaction = async (transaction: CoverageTransaction) 
   const { data, error } = await supabase
     .from('coverage_transactions')
     .insert([{
-      coverage_id: transaction.coverage_id,
+      coverage_id: transaction.coverageId,
       amount: transaction.amount,
       type: transaction.type,
       description: transaction.description,
@@ -229,7 +210,7 @@ export const getCoverageTransactions = async (): Promise<CoverageTransaction[]> 
     .select(`
       *,
       coverages (
-        customer_name
+        received_from
       )
     `)
     .order('created_at', { ascending: false });
@@ -238,21 +219,62 @@ export const getCoverageTransactions = async (): Promise<CoverageTransaction[]> 
   
   return (data || []).map(transaction => ({
     id: transaction.id,
-    coverage_id: transaction.coverage_id,
+    coverageId: transaction.coverage_id,
     amount: transaction.amount,
     type: transaction.type as "payment" | "adjustment" | "refund",
     description: transaction.description,
-    date: transaction.date,
-    coverage_customer_name: transaction.coverages?.customer_name || 'غير محدد',
-    created_at: transaction.created_at
+    date: transaction.date
   }));
 };
 
-export const updateCustomer = async (id: number, customer: Partial<Customer>) => {
+export const getAccounts = async (): Promise<Account[]> => {
   const { data, error } = await supabase
-    .from('customers')
-    .update(customer)
-    .eq('id', id)
+    .from('accounts')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data || []).map(account => ({
+    id: account.id,
+    name: account.name,
+    balance: account.balance
+  }));
+};
+
+export const getCapitalEntries = async (): Promise<CapitalEntry[]> => {
+  const { data, error } = await supabase
+    .from('capital_entries')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data || []).map(entry => ({
+    id: entry.id,
+    date: entry.date,
+    amount: entry.amount,
+    type: entry.type as 'increase' | 'decrease',
+    description: entry.description
+  }));
+};
+
+// CRUD operations
+export const deleteExpense = async (id: string) => {
+  const { error } = await supabase
+    .from('expenses')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+};
+
+export const addPendingCustomer = async (customer: Omit<PendingCustomer, 'id' | 'payments'>) => {
+  const { data, error } = await supabase
+    .from('pending_customers')
+    .insert([{
+      name: customer.name,
+      id_number: customer.idNumber,
+      phone_number: customer.phoneNumber
+    }])
     .select()
     .single();
 
@@ -260,41 +282,128 @@ export const updateCustomer = async (id: number, customer: Partial<Customer>) =>
   return data;
 };
 
-export const deleteCustomer = async (id: number) => {
+export const deletePendingCustomer = async (id: string) => {
   const { error } = await supabase
-    .from('customers')
+    .from('pending_customers')
     .delete()
     .eq('id', id);
 
   if (error) throw error;
 };
 
-export const updateEmployee = async (id: number, employee: Partial<Employee>) => {
+export const addPayment = async (payment: { customerId: string; amount: number; source: string }) => {
   const { data, error } = await supabase
+    .from('payments')
+    .insert([{
+      customer_id: payment.customerId,
+      amount: payment.amount,
+      source: payment.source
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const deletePayment = async (id: string) => {
+  const { error } = await supabase
+    .from('payments')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+};
+
+export const addCompletedCustomer = async (customer: Omit<CompletedCustomer, 'id'>) => {
+  const { data, error } = await supabase
+    .from('completed_customers')
+    .insert([{
+      name: customer.name,
+      id_number: customer.idNumber,
+      phone_number: customer.phoneNumber,
+      amount: customer.amount,
+      fixed_interest: customer.fixedInterest,
+      broker_percentage: customer.brokerInterest,
+      product_difference: customer.productDifference,
+      net_profit: customer.netProfit,
+      total_payment: customer.amount + customer.fixedInterest
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const deleteCompletedCustomer = async (id: string) => {
+  const { error } = await supabase
+    .from('completed_customers')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+};
+
+export const addEmployee = async (employee: Omit<Employee, 'id'>) => {
+  return await saveEmployee(employee);
+};
+
+export const deleteEmployee = async (id: string) => {
+  const { error } = await supabase
     .from('employees')
-    .update(employee)
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-};
-
-export const deleteEmployee = async (id: number) => {
-  const { error } = await supabase
-    .from('employees')
     .delete()
     .eq('id', id);
 
   if (error) throw error;
 };
 
-export const updateCoverage = async (id: number, coverage: Partial<Coverage>) => {
+export const addEmployeeTransaction = async (transaction: Omit<EmployeeTransaction, 'id'>) => {
+  return await saveEmployeeTransaction(transaction);
+};
+
+export const deleteEmployeeTransaction = async (id: string) => {
+  const { error } = await supabase
+    .from('employee_transactions')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+};
+
+export const addCoverage = async (coverage: Omit<Coverage, 'id'>) => {
+  return await saveCoverage(coverage);
+};
+
+export const deleteCoverage = async (id: string) => {
+  const { error } = await supabase
+    .from('coverages')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+};
+
+export const addCoverageTransaction = async (transaction: Omit<CoverageTransaction, 'id'>) => {
+  return await saveCoverageTransaction(transaction);
+};
+
+export const deleteCoverageTransaction = async (id: string) => {
+  const { error } = await supabase
+    .from('coverage_transactions')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+};
+
+export const addAccount = async (account: Omit<Account, 'id'>) => {
   const { data, error } = await supabase
-    .from('coverages')
-    .update(coverage)
-    .eq('id', id)
+    .from('accounts')
+    .insert([{
+      name: account.name,
+      balance: account.balance
+    }])
     .select()
     .single();
 
@@ -302,11 +411,40 @@ export const updateCoverage = async (id: number, coverage: Partial<Coverage>) =>
   return data;
 };
 
-export const deleteCoverage = async (id: number) => {
+export const deleteAccount = async (id: string) => {
   const { error } = await supabase
-    .from('coverages')
+    .from('accounts')
     .delete()
     .eq('id', id);
 
   if (error) throw error;
+};
+
+export const addCapitalEntry = async (entry: Omit<CapitalEntry, 'id'>) => {
+  const { data, error } = await supabase
+    .from('capital_entries')
+    .insert([{
+      date: entry.date,
+      amount: entry.amount,
+      type: entry.type,
+      description: entry.description
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const deleteCapitalEntry = async (id: string) => {
+  const { error } = await supabase
+    .from('capital_entries')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+};
+
+export const addExpense = async (expense: Omit<Expense, 'id'>) => {
+  return await saveExpense(expense);
 };

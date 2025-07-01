@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AccountingData } from '@/types/accounting';
 import * as db from '@/services/database';
