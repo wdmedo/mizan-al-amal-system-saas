@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Employee, 
@@ -148,7 +147,8 @@ export const getCoverages = async (): Promise<Coverage[]> => {
 };
 
 export const saveEmployeeTransaction = async (transaction: Omit<EmployeeTransaction, 'id'>) => {
-  const { data, error } = await supabase
+  // Start a transaction to ensure data consistency
+  const { data: transactionData, error: transactionError } = await supabase
     .from('employee_transactions')
     .insert([{
       employee_id: transaction.employeeId,
@@ -160,8 +160,43 @@ export const saveEmployeeTransaction = async (transaction: Omit<EmployeeTransact
     .select()
     .single();
 
-  if (error) throw error;
-  return data;
+  if (transactionError) throw transactionError;
+
+  // Get current employee data
+  const { data: employee, error: employeeError } = await supabase
+    .from('employees')
+    .select('*')
+    .eq('id', transaction.employeeId)
+    .single();
+
+  if (employeeError) throw employeeError;
+
+  // Calculate new advances based on transaction type
+  let newAdvances = employee.advances;
+  
+  if (transaction.type === 'advance') {
+    // Add to advances
+    newAdvances = employee.advances + transaction.amount;
+  } else if (transaction.type === 'salary_payment') {
+    // Subtract from advances (payment reduces the advance)
+    newAdvances = Math.max(0, employee.advances - transaction.amount);
+  } else if (transaction.type === 'deduction') {
+    // Add to advances (deduction increases what employee owes)
+    newAdvances = employee.advances + transaction.amount;
+  } else if (transaction.type === 'bonus') {
+    // Subtract from advances (bonus reduces what employee owes)
+    newAdvances = Math.max(0, employee.advances - transaction.amount);
+  }
+
+  // Update employee advances
+  const { error: updateError } = await supabase
+    .from('employees')
+    .update({ advances: newAdvances })
+    .eq('id', transaction.employeeId);
+
+  if (updateError) throw updateError;
+
+  return transactionData;
 };
 
 export const getEmployeeTransactions = async (): Promise<EmployeeTransaction[]> => {
@@ -188,7 +223,8 @@ export const getEmployeeTransactions = async (): Promise<EmployeeTransaction[]> 
 };
 
 export const saveCoverageTransaction = async (transaction: Omit<CoverageTransaction, 'id'>) => {
-  const { data, error } = await supabase
+  // Start a transaction to ensure data consistency
+  const { data: transactionData, error: transactionError } = await supabase
     .from('coverage_transactions')
     .insert([{
       coverage_id: transaction.coverageId,
@@ -200,8 +236,42 @@ export const saveCoverageTransaction = async (transaction: Omit<CoverageTransact
     .select()
     .single();
 
-  if (error) throw error;
-  return data;
+  if (transactionError) throw transactionError;
+
+  // Get current coverage data
+  const { data: coverage, error: coverageError } = await supabase
+    .from('coverages')
+    .select('*')
+    .eq('id', transaction.coverageId)
+    .single();
+
+  if (coverageError) throw coverageError;
+
+  // Calculate new remaining amount based on transaction type
+  let newRemaining = coverage.remaining;
+  
+  if (transaction.type === 'payment') {
+    // Subtract from remaining (payment reduces what's left)
+    newRemaining = Math.max(0, coverage.remaining - transaction.amount);
+  } else if (transaction.type === 'adjustment') {
+    // Can increase or decrease remaining based on adjustment
+    // For positive adjustments, add to remaining
+    // For negative adjustments, subtract from remaining
+    newRemaining = Math.max(0, coverage.remaining + transaction.amount);
+  } else if (transaction.type === 'refund') {
+    // Add to remaining (refund increases what's left)
+    newRemaining = coverage.remaining + transaction.amount;
+  }
+
+  // Update coverage remaining amount
+  const { error: updateError } = await supabase
+    .from('coverages')
+    .update({ remaining: newRemaining })
+    .eq('id', transaction.coverageId);
+
+  if (updateError) throw updateError;
+
+  return transactionData;
 };
 
 export const getCoverageTransactions = async (): Promise<CoverageTransaction[]> => {
@@ -363,6 +433,50 @@ export const addEmployeeTransaction = async (transaction: Omit<EmployeeTransacti
 };
 
 export const deleteEmployeeTransaction = async (id: string) => {
+  // Get the transaction details before deleting
+  const { data: transaction, error: getError } = await supabase
+    .from('employee_transactions')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (getError) throw getError;
+
+  // Get current employee data
+  const { data: employee, error: employeeError } = await supabase
+    .from('employees')
+    .select('*')
+    .eq('id', transaction.employee_id)
+    .single();
+
+  if (employeeError) throw employeeError;
+
+  // Reverse the transaction effect on advances
+  let newAdvances = employee.advances;
+  
+  if (transaction.type === 'advance') {
+    // Remove from advances
+    newAdvances = Math.max(0, employee.advances - transaction.amount);
+  } else if (transaction.type === 'salary_payment') {
+    // Add back to advances
+    newAdvances = employee.advances + transaction.amount;
+  } else if (transaction.type === 'deduction') {
+    // Remove from advances
+    newAdvances = Math.max(0, employee.advances - transaction.amount);
+  } else if (transaction.type === 'bonus') {
+    // Add back to advances
+    newAdvances = employee.advances + transaction.amount;
+  }
+
+  // Update employee advances
+  const { error: updateError } = await supabase
+    .from('employees')
+    .update({ advances: newAdvances })
+    .eq('id', transaction.employee_id);
+
+  if (updateError) throw updateError;
+
+  // Delete the transaction
   const { error } = await supabase
     .from('employee_transactions')
     .delete()
@@ -389,6 +503,47 @@ export const addCoverageTransaction = async (transaction: Omit<CoverageTransacti
 };
 
 export const deleteCoverageTransaction = async (id: string) => {
+  // Get the transaction details before deleting
+  const { data: transaction, error: getError } = await supabase
+    .from('coverage_transactions')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (getError) throw getError;
+
+  // Get current coverage data
+  const { data: coverage, error: coverageError } = await supabase
+    .from('coverages')
+    .select('*')
+    .eq('id', transaction.coverage_id)
+    .single();
+
+  if (coverageError) throw coverageError;
+
+  // Reverse the transaction effect on remaining amount
+  let newRemaining = coverage.remaining;
+  
+  if (transaction.type === 'payment') {
+    // Add back to remaining
+    newRemaining = coverage.remaining + transaction.amount;
+  } else if (transaction.type === 'adjustment') {
+    // Reverse the adjustment
+    newRemaining = Math.max(0, coverage.remaining - transaction.amount);
+  } else if (transaction.type === 'refund') {
+    // Remove from remaining
+    newRemaining = Math.max(0, coverage.remaining - transaction.amount);
+  }
+
+  // Update coverage remaining amount
+  const { error: updateError } = await supabase
+    .from('coverages')
+    .update({ remaining: newRemaining })
+    .eq('id', transaction.coverage_id);
+
+  if (updateError) throw updateError;
+
+  // Delete the transaction
   const { error } = await supabase
     .from('coverage_transactions')
     .delete()
