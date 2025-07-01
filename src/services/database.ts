@@ -12,7 +12,7 @@ import {
   CapitalEntry
 } from '@/types/accounting';
 
-export const saveExpense = async (expense: Expense) => {
+export const saveExpense = async (expense: Omit<Expense, 'id'>) => {
   const { data, error } = await supabase
     .from('expenses')
     .insert([{
@@ -85,7 +85,7 @@ export const getCompletedCustomers = async (): Promise<CompletedCustomer[]> => {
   }));
 };
 
-export const saveEmployee = async (employee: Employee) => {
+export const saveEmployee = async (employee: Omit<Employee, 'id'>) => {
   const { data, error } = await supabase
     .from('employees')
     .insert([{
@@ -115,7 +115,7 @@ export const getEmployees = async (): Promise<Employee[]> => {
   }));
 };
 
-export const saveCoverage = async (coverage: Coverage) => {
+export const saveCoverage = async (coverage: Omit<Coverage, 'id'>) => {
   const { data, error } = await supabase
     .from('coverages')
     .insert([{
@@ -147,7 +147,7 @@ export const getCoverages = async (): Promise<Coverage[]> => {
   }));
 };
 
-export const saveEmployeeTransaction = async (transaction: EmployeeTransaction) => {
+export const saveEmployeeTransaction = async (transaction: Omit<EmployeeTransaction, 'id'>) => {
   const { data, error } = await supabase
     .from('employee_transactions')
     .insert([{
@@ -187,7 +187,7 @@ export const getEmployeeTransactions = async (): Promise<EmployeeTransaction[]> 
   }));
 };
 
-export const saveCoverageTransaction = async (transaction: CoverageTransaction) => {
+export const saveCoverageTransaction = async (transaction: Omit<CoverageTransaction, 'id'>) => {
   const { data, error } = await supabase
     .from('coverage_transactions')
     .insert([{
