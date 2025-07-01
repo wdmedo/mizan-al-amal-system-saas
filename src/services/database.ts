@@ -23,6 +23,10 @@ export const saveExpense = async (expense: Omit<Expense, 'id'>) => {
     .single();
 
   if (error) throw error;
+
+  // تحديث رصيد البنك الرئيسي (خصم المصروف)
+  await updateBankBalance(-expense.amount, 'مصروف: ' + expense.description);
+
   return data;
 };
 
@@ -127,6 +131,10 @@ export const saveCoverage = async (coverage: Omit<Coverage, 'id'>) => {
     .single();
 
   if (error) throw error;
+
+  // تحديث رصيد البنك الرئيسي (خصم مبلغ التغطية)
+  await updateBankBalance(-coverage.amount, 'تغطية من: ' + coverage.receivedFrom);
+
   return data;
 };
 
@@ -144,6 +152,47 @@ export const getCoverages = async (): Promise<Coverage[]> => {
     receivedBy: coverage.received_by,
     remaining: coverage.remaining
   }));
+};
+
+// دالة مساعدة لتحديث رصيد البنك الرئيسي
+const updateBankBalance = async (amount: number, description: string) => {
+  // البحث عن حساب البنك الرئيسي أو إنشاؤه إذا لم يكن موجوداً
+  let { data: bankAccount, error: getBankError } = await supabase
+    .from('accounts')
+    .select('*')
+    .eq('name', 'حساب البنك الرئيسي')
+    .single();
+
+  if (getBankError && getBankError.code !== 'PGRST116') {
+    throw getBankError;
+  }
+
+  if (!bankAccount) {
+    // إنشاء حساب البنك الرئيسي إذا لم يكن موجوداً
+    const { data: newAccount, error: createError } = await supabase
+      .from('accounts')
+      .insert([{
+        name: 'حساب البنك الرئيسي',
+        balance: amount
+      }])
+      .select()
+      .single();
+
+    if (createError) throw createError;
+    return newAccount;
+  } else {
+    // تحديث الرصيد الحالي
+    const newBalance = bankAccount.balance + amount;
+    const { error: updateError } = await supabase
+      .from('accounts')
+      .update({ balance: newBalance })
+      .eq('id', bankAccount.id);
+
+    if (updateError) throw updateError;
+    
+    console.log(`تم تحديث رصيد البنك: ${amount} - ${description}`);
+    return { ...bankAccount, balance: newBalance };
+  }
 };
 
 export const saveEmployeeTransaction = async (transaction: Omit<EmployeeTransaction, 'id'>) => {
@@ -173,19 +222,28 @@ export const saveEmployeeTransaction = async (transaction: Omit<EmployeeTransact
 
   // Calculate new advances based on transaction type
   let newAdvances = employee.advances;
+  let bankBalanceChange = 0;
   
   if (transaction.type === 'advance') {
     // Add to advances
     newAdvances = employee.advances + transaction.amount;
+    // خصم من رصيد البنك (إعطاء سلفة)
+    bankBalanceChange = -transaction.amount;
   } else if (transaction.type === 'salary_payment') {
     // Subtract from advances (payment reduces the advance)
     newAdvances = Math.max(0, employee.advances - transaction.amount);
+    // خصم من رصيد البنك (دفع راتب)
+    bankBalanceChange = -transaction.amount;
   } else if (transaction.type === 'deduction') {
     // Add to advances (deduction increases what employee owes)
     newAdvances = employee.advances + transaction.amount;
+    // إضافة إلى رصيد البنك (خصم من الموظف)
+    bankBalanceChange = transaction.amount;
   } else if (transaction.type === 'bonus') {
     // Subtract from advances (bonus reduces what employee owes)
     newAdvances = Math.max(0, employee.advances - transaction.amount);
+    // خصم من رصيد البنك (دفع مكافأة)
+    bankBalanceChange = -transaction.amount;
   }
 
   // Update employee advances
@@ -195,6 +253,11 @@ export const saveEmployeeTransaction = async (transaction: Omit<EmployeeTransact
     .eq('id', transaction.employeeId);
 
   if (updateError) throw updateError;
+
+  // تحديث رصيد البنك
+  if (bankBalanceChange !== 0) {
+    await updateBankBalance(bankBalanceChange, `معاملة ${employee.name}: ${transaction.description}`);
+  }
 
   return transactionData;
 };
@@ -249,18 +312,25 @@ export const saveCoverageTransaction = async (transaction: Omit<CoverageTransact
 
   // Calculate new remaining amount based on transaction type
   let newRemaining = coverage.remaining;
+  let bankBalanceChange = 0;
   
   if (transaction.type === 'payment') {
     // Subtract from remaining (payment reduces what's left)
     newRemaining = Math.max(0, coverage.remaining - transaction.amount);
+    // إضافة إلى رصيد البنك (دفعة من التغطية)
+    bankBalanceChange = transaction.amount;
   } else if (transaction.type === 'adjustment') {
     // Can increase or decrease remaining based on adjustment
     // For positive adjustments, add to remaining
     // For negative adjustments, subtract from remaining
     newRemaining = Math.max(0, coverage.remaining + transaction.amount);
+    // تأثير على رصيد البنك حسب نوع التسوية
+    bankBalanceChange = -transaction.amount;
   } else if (transaction.type === 'refund') {
     // Add to remaining (refund increases what's left)
     newRemaining = coverage.remaining + transaction.amount;
+    // خصم من رصيد البنك (رد مبلغ)
+    bankBalanceChange = -transaction.amount;
   }
 
   // Update coverage remaining amount
@@ -270,6 +340,11 @@ export const saveCoverageTransaction = async (transaction: Omit<CoverageTransact
     .eq('id', transaction.coverageId);
 
   if (updateError) throw updateError;
+
+  // تحديث رصيد البنك
+  if (bankBalanceChange !== 0) {
+    await updateBankBalance(bankBalanceChange, `معاملة تغطية من ${coverage.received_from}: ${transaction.description}`);
+  }
 
   return transactionData;
 };
@@ -329,12 +404,25 @@ export const getCapitalEntries = async (): Promise<CapitalEntry[]> => {
 
 // CRUD operations
 export const deleteExpense = async (id: string) => {
+  // الحصول على بيانات المصروف قبل الحذف
+  const { data: expense, error: getError } = await supabase
+    .from('expenses')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (getError) throw getError;
+
+  // حذف المصروف
   const { error } = await supabase
     .from('expenses')
     .delete()
     .eq('id', id);
 
   if (error) throw error;
+
+  // إعادة المبلغ إلى رصيد البنك (عكس الخصم)
+  await updateBankBalance(expense.amount, 'إلغاء مصروف: ' + expense.description);
 };
 
 export const addPendingCustomer = async (customer: Omit<PendingCustomer, 'id' | 'payments'>) => {
@@ -373,16 +461,33 @@ export const addPayment = async (payment: { customerId: string; amount: number; 
     .single();
 
   if (error) throw error;
+
+  // إضافة الدفعة إلى رصيد البنك
+  await updateBankBalance(payment.amount, `دفعة من عميل معلق - ${payment.source}`);
+
   return data;
 };
 
 export const deletePayment = async (id: string) => {
+  // الحصول على بيانات الدفعة قبل الحذف
+  const { data: payment, error: getError } = await supabase
+    .from('payments')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (getError) throw getError;
+
+  // حذف الدفعة
   const { error } = await supabase
     .from('payments')
     .delete()
     .eq('id', id);
 
   if (error) throw error;
+
+  // خصم المبلغ من رصيد البنك (عكس الإضافة)
+  await updateBankBalance(-payment.amount, `إلغاء دفعة - ${payment.source}`);
 };
 
 export const addCompletedCustomer = async (customer: Omit<CompletedCustomer, 'id'>) => {
@@ -403,16 +508,35 @@ export const addCompletedCustomer = async (customer: Omit<CompletedCustomer, 'id
     .single();
 
   if (error) throw error;
+
+  // إضافة إجمالي المبلغ المستلم إلى رصيد البنك
+  const totalReceived = customer.amount + customer.fixedInterest;
+  await updateBankBalance(totalReceived, `عميل خالص: ${customer.name}`);
+
   return data;
 };
 
 export const deleteCompletedCustomer = async (id: string) => {
+  // الحصول على بيانات العميل قبل الحذف
+  const { data: customer, error: getError } = await supabase
+    .from('completed_customers')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (getError) throw getError;
+
+  // حذف العميل
   const { error } = await supabase
     .from('completed_customers')
     .delete()
     .eq('id', id);
 
   if (error) throw error;
+
+  // خصم المبلغ من رصيد البنك (عكس الإضافة)
+  const totalReceived = customer.amount + customer.fixed_interest;
+  await updateBankBalance(-totalReceived, `إلغاء عميل خالص: ${customer.name}`);
 };
 
 export const addEmployee = async (employee: Omit<Employee, 'id'>) => {
@@ -453,19 +577,28 @@ export const deleteEmployeeTransaction = async (id: string) => {
 
   // Reverse the transaction effect on advances
   let newAdvances = employee.advances;
+  let bankBalanceChange = 0;
   
   if (transaction.type === 'advance') {
     // Remove from advances
     newAdvances = Math.max(0, employee.advances - transaction.amount);
+    // إعادة المبلغ إلى رصيد البنك
+    bankBalanceChange = transaction.amount;
   } else if (transaction.type === 'salary_payment') {
     // Add back to advances
     newAdvances = employee.advances + transaction.amount;
+    // إعادة المبلغ إلى رصيد البنك
+    bankBalanceChange = transaction.amount;
   } else if (transaction.type === 'deduction') {
     // Remove from advances
     newAdvances = Math.max(0, employee.advances - transaction.amount);
+    // خصم من رصيد البنك
+    bankBalanceChange = -transaction.amount;
   } else if (transaction.type === 'bonus') {
     // Add back to advances
     newAdvances = employee.advances + transaction.amount;
+    // إعادة المبلغ إلى رصيد البنك
+    bankBalanceChange = transaction.amount;
   }
 
   // Update employee advances
@@ -475,6 +608,11 @@ export const deleteEmployeeTransaction = async (id: string) => {
     .eq('id', transaction.employee_id);
 
   if (updateError) throw updateError;
+
+  // تحديث رصيد البنك
+  if (bankBalanceChange !== 0) {
+    await updateBankBalance(bankBalanceChange, `إلغاء معاملة ${employee.name}: ${transaction.description}`);
+  }
 
   // Delete the transaction
   const { error } = await supabase
@@ -490,12 +628,25 @@ export const addCoverage = async (coverage: Omit<Coverage, 'id'>) => {
 };
 
 export const deleteCoverage = async (id: string) => {
+  // الحصول على بيانات التغطية قبل الحذف
+  const { data: coverage, error: getError } = await supabase
+    .from('coverages')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (getError) throw getError;
+
+  // حذف التغطية
   const { error } = await supabase
     .from('coverages')
     .delete()
     .eq('id', id);
 
   if (error) throw error;
+
+  // إعادة المبلغ إلى رصيد البنك (عكس الخصم)
+  await updateBankBalance(coverage.amount, `إلغاء تغطية من: ${coverage.received_from}`);
 };
 
 export const addCoverageTransaction = async (transaction: Omit<CoverageTransaction, 'id'>) => {
@@ -523,16 +674,23 @@ export const deleteCoverageTransaction = async (id: string) => {
 
   // Reverse the transaction effect on remaining amount
   let newRemaining = coverage.remaining;
+  let bankBalanceChange = 0;
   
   if (transaction.type === 'payment') {
     // Add back to remaining
     newRemaining = coverage.remaining + transaction.amount;
+    // خصم من رصيد البنك
+    bankBalanceChange = -transaction.amount;
   } else if (transaction.type === 'adjustment') {
     // Reverse the adjustment
     newRemaining = Math.max(0, coverage.remaining - transaction.amount);
+    // عكس التأثير على رصيد البنك
+    bankBalanceChange = transaction.amount;
   } else if (transaction.type === 'refund') {
     // Remove from remaining
     newRemaining = Math.max(0, coverage.remaining - transaction.amount);
+    // إعادة المبلغ إلى رصيد البنك
+    bankBalanceChange = transaction.amount;
   }
 
   // Update coverage remaining amount
@@ -542,6 +700,11 @@ export const deleteCoverageTransaction = async (id: string) => {
     .eq('id', transaction.coverage_id);
 
   if (updateError) throw updateError;
+
+  // تحديث رصيد البنك
+  if (bankBalanceChange !== 0) {
+    await updateBankBalance(bankBalanceChange, `إلغاء معاملة تغطية من ${coverage.received_from}: ${transaction.description}`);
+  }
 
   // Delete the transaction
   const { error } = await supabase
@@ -588,16 +751,35 @@ export const addCapitalEntry = async (entry: Omit<CapitalEntry, 'id'>) => {
     .single();
 
   if (error) throw error;
+
+  // تحديث رصيد البنك الرئيسي حسب نوع الحركة
+  const bankBalanceChange = entry.type === 'increase' ? entry.amount : -entry.amount;
+  await updateBankBalance(bankBalanceChange, `حركة رأس المال: ${entry.description}`);
+
   return data;
 };
 
 export const deleteCapitalEntry = async (id: string) => {
+  // الحصول على بيانات الحركة قبل الحذف
+  const { data: entry, error: getError } = await supabase
+    .from('capital_entries')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (getError) throw getError;
+
+  // حذف الحركة
   const { error } = await supabase
     .from('capital_entries')
     .delete()
     .eq('id', id);
 
   if (error) throw error;
+
+  // عكس التأثير على رصيد البنك
+  const bankBalanceChange = entry.type === 'increase' ? -entry.amount : entry.amount;
+  await updateBankBalance(bankBalanceChange, `إلغاء حركة رأس المال: ${entry.description}`);
 };
 
 export const addExpense = async (expense: Omit<Expense, 'id'>) => {
