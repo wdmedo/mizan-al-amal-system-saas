@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Expense, 
@@ -6,7 +5,9 @@ import {
   Payment, 
   CompletedCustomer, 
   Employee, 
+  EmployeeTransaction,
   Coverage, 
+  CoverageTransaction,
   Account,
   CapitalEntry
 } from '@/types/accounting';
@@ -43,7 +44,31 @@ const transformCoverage = (row: any): Coverage => ({
   amount: row.amount,
   receivedFrom: row.received_from,
   receivedBy: row.received_by,
-  remaining: row.remaining
+  remaining: row.remaining,
+  transactions: row.coverage_transactions?.map((transaction: any) => ({
+    id: transaction.id,
+    coverageId: transaction.coverage_id,
+    type: transaction.type,
+    amount: transaction.amount,
+    description: transaction.description,
+    date: transaction.date
+  })) || []
+});
+
+// Helper function to transform database row to Employee
+const transformEmployee = (row: any): Employee => ({
+  id: row.id,
+  name: row.name,
+  salary: row.salary,
+  advances: row.advances,
+  transactions: row.employee_transactions?.map((transaction: any) => ({
+    id: transaction.id,
+    employeeId: transaction.employee_id,
+    type: transaction.type,
+    amount: transaction.amount,
+    description: transaction.description,
+    date: transaction.date
+  })) || []
 });
 
 // Expenses
@@ -195,14 +220,17 @@ export const deleteCompletedCustomer = async (id: string): Promise<void> => {
 export const getEmployees = async (): Promise<Employee[]> => {
   const { data, error } = await supabase
     .from('employees')
-    .select('*')
+    .select(`
+      *,
+      employee_transactions (*)
+    `)
     .order('created_at', { ascending: false });
   
   if (error) throw error;
-  return data || [];
+  return data?.map(transformEmployee) || [];
 };
 
-export const addEmployee = async (employee: Omit<Employee, 'id'>): Promise<Employee> => {
+export const addEmployee = async (employee: Omit<Employee, 'id' | 'transactions'>): Promise<Employee> => {
   const { data, error } = await supabase
     .from('employees')
     .insert(employee)
@@ -210,7 +238,7 @@ export const addEmployee = async (employee: Omit<Employee, 'id'>): Promise<Emplo
     .single();
   
   if (error) throw error;
-  return data;
+  return transformEmployee({ ...data, employee_transactions: [] });
 };
 
 export const deleteEmployee = async (id: string): Promise<void> => {
@@ -222,18 +250,114 @@ export const deleteEmployee = async (id: string): Promise<void> => {
   if (error) throw error;
 };
 
+// Employee Transactions
+export const getEmployeeTransactions = async (): Promise<EmployeeTransaction[]> => {
+  const { data, error } = await supabase
+    .from('employee_transactions')
+    .select('*')
+    .order('date', { ascending: false });
+  
+  if (error) throw error;
+  return data?.map(transaction => ({
+    id: transaction.id,
+    employeeId: transaction.employee_id,
+    type: transaction.type as 'advance' | 'salary_payment' | 'deduction' | 'bonus',
+    amount: transaction.amount,
+    description: transaction.description,
+    date: transaction.date
+  })) || [];
+};
+
+export const addEmployeeTransaction = async (transaction: Omit<EmployeeTransaction, 'id'>): Promise<EmployeeTransaction> => {
+  const dbTransaction = {
+    employee_id: transaction.employeeId,
+    type: transaction.type,
+    amount: transaction.amount,
+    description: transaction.description,
+    date: transaction.date
+  };
+
+  const { data, error } = await supabase
+    .from('employee_transactions')
+    .insert(dbTransaction)
+    .select()
+    .single();
+  
+  if (error) throw error;
+
+  // تحديث رصيد السلف للموظف إذا كانت المعاملة سلفة
+  if (transaction.type === 'advance') {
+    await updateEmployeeAdvances(transaction.employeeId, transaction.amount);
+  }
+
+  return {
+    id: data.id,
+    employeeId: data.employee_id,
+    type: data.type,
+    amount: data.amount,
+    description: data.description,
+    date: data.date
+  };
+};
+
+export const deleteEmployeeTransaction = async (id: string): Promise<void> => {
+  // الحصول على بيانات المعاملة قبل حذفها
+  const { data: transaction, error: fetchError } = await supabase
+    .from('employee_transactions')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (fetchError) throw fetchError;
+
+  const { error } = await supabase
+    .from('employee_transactions')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
+
+  // عكس تأثير المعاملة على رصيد السلف إذا كانت سلفة
+  if (transaction && transaction.type === 'advance') {
+    await updateEmployeeAdvances(transaction.employee_id, -transaction.amount);
+  }
+};
+
+// تحديث رصيد السلف للموظف
+const updateEmployeeAdvances = async (employeeId: string, amount: number) => {
+  const { data: employee, error: fetchError } = await supabase
+    .from('employees')
+    .select('advances')
+    .eq('id', employeeId)
+    .single();
+  
+  if (fetchError) throw fetchError;
+
+  const newAdvances = employee.advances + amount;
+
+  const { error: updateError } = await supabase
+    .from('employees')
+    .update({ advances: newAdvances })
+    .eq('id', employeeId);
+
+  if (updateError) throw updateError;
+};
+
 // Coverages
 export const getCoverages = async (): Promise<Coverage[]> => {
   const { data, error } = await supabase
     .from('coverages')
-    .select('*')
+    .select(`
+      *,
+      coverage_transactions (*)
+    `)
     .order('created_at', { ascending: false });
   
   if (error) throw error;
   return data?.map(transformCoverage) || [];
 };
 
-export const addCoverage = async (coverage: Omit<Coverage, 'id'>): Promise<Coverage> => {
+export const addCoverage = async (coverage: Omit<Coverage, 'id' | 'transactions'>): Promise<Coverage> => {
   const dbCoverage = {
     amount: coverage.amount,
     received_from: coverage.receivedFrom,
@@ -248,7 +372,7 @@ export const addCoverage = async (coverage: Omit<Coverage, 'id'>): Promise<Cover
     .single();
   
   if (error) throw error;
-  return transformCoverage(data);
+  return transformCoverage({ ...data, coverage_transactions: [] });
 };
 
 export const deleteCoverage = async (id: string): Promise<void> => {
@@ -258,6 +382,107 @@ export const deleteCoverage = async (id: string): Promise<void> => {
     .eq('id', id);
   
   if (error) throw error;
+};
+
+// Coverage Transactions
+export const getCoverageTransactions = async (): Promise<CoverageTransaction[]> => {
+  const { data, error } = await supabase
+    .from('coverage_transactions')
+    .select('*')
+    .order('date', { ascending: false });
+  
+  if (error) throw error;
+  return data?.map(transaction => ({
+    id: transaction.id,
+    coverageId: transaction.coverage_id,
+    type: transaction.type as 'payment' | 'adjustment' | 'refund',
+    amount: transaction.amount,
+    description: transaction.description,
+    date: transaction.date
+  })) || [];
+};
+
+export const addCoverageTransaction = async (transaction: Omit<CoverageTransaction, 'id'>): Promise<CoverageTransaction> => {
+  const dbTransaction = {
+    coverage_id: transaction.coverageId,
+    type: transaction.type,
+    amount: transaction.amount,
+    description: transaction.description,
+    date: transaction.date
+  };
+
+  const { data, error } = await supabase
+    .from('coverage_transactions')
+    .insert(dbTransaction)
+    .select()
+    .single();
+  
+  if (error) throw error;
+
+  // تحديث المبلغ المتبقي للتغطية
+  await updateCoverageRemaining(transaction.coverageId, transaction.type, transaction.amount);
+
+  return {
+    id: data.id,
+    coverageId: data.coverage_id,
+    type: data.type,
+    amount: data.amount,
+    description: data.description,
+    date: data.date
+  };
+};
+
+export const deleteCoverageTransaction = async (id: string): Promise<void> => {
+  // الحصول على بيانات المعاملة قبل حذفها
+  const { data: transaction, error: fetchError } = await supabase
+    .from('coverage_transactions')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (fetchError) throw fetchError;
+
+  const { error } = await supabase
+    .from('coverage_transactions')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
+
+  // عكس تأثير المعاملة على المبلغ المتبقي
+  if (transaction) {
+    const reverseType = transaction.type === 'payment' ? 'refund' : 'payment';
+    await updateCoverageRemaining(transaction.coverage_id, reverseType, transaction.amount);
+  }
+};
+
+// تحديث المبلغ المتبقي للتغطية
+const updateCoverageRemaining = async (coverageId: string, type: string, amount: number) => {
+  const { data: coverage, error: fetchError } = await supabase
+    .from('coverages')
+    .select('remaining')
+    .eq('id', coverageId)
+    .single();
+  
+  if (fetchError) throw fetchError;
+
+  let newRemaining = coverage.remaining;
+  
+  if (type === 'payment') {
+    newRemaining -= amount;
+  } else if (type === 'refund' || type === 'adjustment') {
+    newRemaining += amount;
+  }
+
+  // التأكد من أن المبلغ المتبقي لا يصبح سالباً
+  newRemaining = Math.max(0, newRemaining);
+
+  const { error: updateError } = await supabase
+    .from('coverages')
+    .update({ remaining: newRemaining })
+    .eq('id', coverageId);
+
+  if (updateError) throw updateError;
 };
 
 // Accounts

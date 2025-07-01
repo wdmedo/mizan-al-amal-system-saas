@@ -28,9 +28,19 @@ export const useAccountingData = () => {
     queryFn: db.getEmployees,
   });
 
+  const { data: employeeTransactions = [] } = useQuery({
+    queryKey: ['employee-transactions'],
+    queryFn: db.getEmployeeTransactions,
+  });
+
   const { data: coverages = [] } = useQuery({
     queryKey: ['coverages'],
     queryFn: db.getCoverages,
+  });
+
+  const { data: coverageTransactions = [] } = useQuery({
+    queryKey: ['coverage-transactions'],
+    queryFn: db.getCoverageTransactions,
   });
 
   const { data: accounts = [] } = useQuery({
@@ -48,7 +58,9 @@ export const useAccountingData = () => {
     pendingCustomers,
     completedCustomers,
     employees,
+    employeeTransactions,
     coverages,
+    coverageTransactions,
     accounts,
     capitalEntries
   };
@@ -168,6 +180,31 @@ export const useAccountingData = () => {
     }
   });
 
+  // Mutations for employee transactions
+  const addEmployeeTransactionMutation = useMutation({
+    mutationFn: db.addEmployeeTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast({ title: "تمت إضافة المعاملة بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في إضافة المعاملة", variant: "destructive" });
+    }
+  });
+
+  const deleteEmployeeTransactionMutation = useMutation({
+    mutationFn: db.deleteEmployeeTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast({ title: "تم حذف المعاملة بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في حذف المعاملة", variant: "destructive" });
+    }
+  });
+
   // Mutations for coverages
   const addCoverageMutation = useMutation({
     mutationFn: db.addCoverage,
@@ -188,6 +225,31 @@ export const useAccountingData = () => {
     },
     onError: () => {
       toast({ title: "خطأ في حذف التغطية", variant: "destructive" });
+    }
+  });
+
+  // Mutations for coverage transactions
+  const addCoverageTransactionMutation = useMutation({
+    mutationFn: db.addCoverageTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coverage-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['coverages'] });
+      toast({ title: "تمت إضافة معاملة التغطية بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في إضافة معاملة التغطية", variant: "destructive" });
+    }
+  });
+
+  const deleteCoverageTransactionMutation = useMutation({
+    mutationFn: db.deleteCoverageTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coverage-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['coverages'] });
+      toast({ title: "تم حذف معاملة التغطية بنجاح" });
+    },
+    onError: () => {
+      toast({ title: "خطأ في حذف معاملة التغطية", variant: "destructive" });
     }
   });
 
@@ -258,10 +320,14 @@ export const useAccountingData = () => {
     // Employee functions
     addEmployee: (employee: any) => addEmployeeMutation.mutate(employee),
     deleteEmployee: (id: string) => deleteEmployeeMutation.mutate(id),
+    addEmployeeTransaction: (transaction: any) => addEmployeeTransactionMutation.mutate(transaction),
+    deleteEmployeeTransaction: (id: string) => deleteEmployeeTransactionMutation.mutate(id),
     
     // Coverage functions
     addCoverage: (coverage: any) => addCoverageMutation.mutate(coverage),
     deleteCoverage: (id: string) => deleteCoverageMutation.mutate(id),
+    addCoverageTransaction: (transaction: any) => addCoverageTransactionMutation.mutate(transaction),
+    deleteCoverageTransaction: (id: string) => deleteCoverageTransactionMutation.mutate(id),
     
     // Account functions
     addAccount: (account: any) => addAccountMutation.mutate(account),

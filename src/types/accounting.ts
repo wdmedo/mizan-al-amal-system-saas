@@ -37,6 +37,16 @@ export interface Employee {
   name: string;
   salary: number;
   advances: number;
+  transactions?: EmployeeTransaction[];
+}
+
+export interface EmployeeTransaction {
+  id: string;
+  employeeId: string;
+  type: 'advance' | 'salary_payment' | 'deduction' | 'bonus';
+  amount: number;
+  description: string;
+  date: string;
 }
 
 export interface Coverage {
@@ -45,6 +55,16 @@ export interface Coverage {
   receivedFrom: string;
   receivedBy: string;
   remaining: number;
+  transactions?: CoverageTransaction[];
+}
+
+export interface CoverageTransaction {
+  id: string;
+  coverageId: string;
+  type: 'payment' | 'adjustment' | 'refund';
+  amount: number;
+  description: string;
+  date: string;
 }
 
 export interface Account {
@@ -66,7 +86,9 @@ export interface AccountingData {
   pendingCustomers: PendingCustomer[];
   completedCustomers: CompletedCustomer[];
   employees: Employee[];
+  employeeTransactions: EmployeeTransaction[];
   coverages: Coverage[];
+  coverageTransactions: CoverageTransaction[];
   accounts: Account[];
   capitalEntries: CapitalEntry[];
 }

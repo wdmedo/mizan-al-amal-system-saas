@@ -99,6 +99,44 @@ export type Database = {
         }
         Relationships: []
       }
+      coverage_transactions: {
+        Row: {
+          amount: number
+          coverage_id: string
+          created_at: string
+          date: string
+          description: string
+          id: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          coverage_id: string
+          created_at?: string
+          date?: string
+          description: string
+          id?: string
+          type: string
+        }
+        Update: {
+          amount?: number
+          coverage_id?: string
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coverage_transactions_coverage_id_fkey"
+            columns: ["coverage_id"]
+            isOneToOne: false
+            referencedRelation: "coverages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coverages: {
         Row: {
           amount: number
@@ -125,6 +163,44 @@ export type Database = {
           remaining?: number
         }
         Relationships: []
+      }
+      employee_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          description: string
+          employee_id: string
+          id: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          description: string
+          employee_id: string
+          id?: string
+          type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          description?: string
+          employee_id?: string
+          id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_transactions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       employees: {
         Row: {
