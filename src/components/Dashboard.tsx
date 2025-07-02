@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingDown, Users, UserCheck, Briefcase, Shield, FileText, Calculator, TrendingUp, DollarSign, Banknote, AlertTriangle } from 'lucide-react';
@@ -40,8 +39,8 @@ const Dashboard = () => {
   // المصروفات = إجمالي رواتب الموظفين + مصروفات المكتب
   const totalOfficeExpenses = totalEmployeeSalaries + totalExpenses;
   
-  // صافي رصيد البنك = رأس المال على مدى السنة + الإيرادات - التغطيات + إجمالي المتبقي من التغطيات - المصروفات - إجمالي العملاء المعلقين - السلفيات - إجمالي فرق السلعة من العملاء الخالصين
-  const netBankBalance = capitalOverYear + totalRevenues - totalCoverages + totalRemainingCoverages - totalOfficeExpenses - totalPendingPayments - totalEmployeeAdvances - totalProductDifference;
+  // صافي رصيد البنك = رأس المال على مدى السنة + الإيرادات - المصروفات - إجمالي العملاء المعلقين - السلفيات - إجمالي فرق السلعة من العملاء الخالصين
+  const netBankBalance = capitalOverYear + totalRevenues - totalOfficeExpenses - totalPendingPayments - totalEmployeeAdvances - totalProductDifference;
   
   // الفرق بين صافي رصيد البنك والرصيد الفعلي
   const bankBalanceDifference = netBankBalance - actualBankBalance;
@@ -199,14 +198,6 @@ const Dashboard = () => {
                   <span className="font-semibold text-green-600">+ {formatCurrency(totalRevenues)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">التغطيات:</span>
-                  <span className="font-semibold text-red-600">- {formatCurrency(totalCoverages)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">إجمالي المتبقي من التغطيات:</span>
-                  <span className="font-semibold text-green-600">+ {formatCurrency(totalRemainingCoverages)}</span>
-                </div>
-                <div className="flex justify-between">
                   <span className="text-gray-600">المصروفات:</span>
                   <span className="font-semibold text-red-600">- {formatCurrency(totalOfficeExpenses)}</span>
                 </div>
@@ -342,4 +333,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
