@@ -39,8 +39,8 @@ const Dashboard = () => {
   // المصروفات = إجمالي رواتب الموظفين + مصروفات المكتب
   const totalOfficeExpenses = totalEmployeeSalaries + totalExpenses;
   
-  // صافي رصيد البنك = رأس المال على مدى السنة + الإيرادات - المصروفات - إجمالي العملاء المعلقين - السلفيات - إجمالي فرق السلعة من العملاء الخالصين
-  const netBankBalance = capitalOverYear + totalRevenues - totalOfficeExpenses - totalPendingPayments - totalEmployeeAdvances - totalProductDifference;
+  // صافي رصيد البنك = رأس المال على مدى السنة + الإيرادات - المصروفات - إجمالي العملاء المعلقين - السلفيات - إجمالي فرق السلعة من العملاء الخالصين + إجمالي الباقي من التغطيات
+  const netBankBalance = capitalOverYear + totalRevenues - totalOfficeExpenses - totalPendingPayments - totalEmployeeAdvances - totalProductDifference + totalRemainingCoverages;
   
   // الفرق بين صافي رصيد البنك والرصيد الفعلي
   const bankBalanceDifference = netBankBalance - actualBankBalance;
@@ -213,6 +213,10 @@ const Dashboard = () => {
                   <span className="text-gray-600">إجمالي فرق السلعة:</span>
                   <span className="font-semibold text-red-600">- {formatCurrency(totalProductDifference)}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">إجمالي الباقي من التغطيات:</span>
+                  <span className="font-semibold text-green-600">+ {formatCurrency(totalRemainingCoverages)}</span>
+                </div>
                 <hr className="border-gray-200" />
                 <div className="flex justify-between text-lg font-bold">
                   <span className="text-gray-800">صافي رصيد البنك:</span>
@@ -302,7 +306,6 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
