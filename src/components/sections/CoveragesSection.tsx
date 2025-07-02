@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Trash2, Shield, DollarSign, FileText, Calendar, AlertCircle, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, Shield, DollarSign, FileText, Calendar, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { useAccountingData } from '@/hooks/useAccountingData';
 import PrintButton from '@/components/PrintButton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -180,6 +181,23 @@ const CoveragesSection = () => {
         </div>
         <p className="text-gray-600 text-sm sm:text-base">إدارة التغطيات المالية والمبالغ المتبقية</p>
       </div>
+
+      {/* Important Info Alert */}
+      <Alert className="border-blue-200 bg-blue-50 mb-6">
+        <Info className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-700">
+          <div className="space-y-2">
+            <p className="font-semibold">ملاحظة مهمة: التغطيات عبارة عن معاملات تتم من وإلى الحساب الرئيسي للبنك فقط</p>
+            <div className="text-sm">
+              <p className="font-medium mb-1">مثال على التغطية:</p>
+              <p>• اسم التغطية: أحمد محمد → شركة الخليج</p>
+              <p>• مبلغ التغطية: 50,000 ريال</p>
+              <p>• المتبقي: 30,000 ريال</p>
+              <p>• الصافي المدفوع: 20,000 ريال</p>
+            </div>
+          </div>
+        </AlertDescription>
+      </Alert>
 
       {/* Validation Errors */}
       {validationErrors.length > 0 && (
@@ -388,7 +406,7 @@ const CoveragesSection = () => {
                           <span className="font-bold text-purple-600 text-sm sm:text-lg">{formatCurrency(coverage.amount)}</span>
                         </div>
                         <div className="bg-white p-2 sm:p-3 rounded-lg border">
-                          <span className="text-gray-600 text-xs sm:text-sm block">المدفوع:</span>
+                          <span className="text-gray-600 text-xs sm:text-sm block">الصافي المدفوع:</span>
                           <span className="font-bold text-green-600 text-sm sm:text-lg">{formatCurrency(coverageStatus.paid)}</span>
                         </div>
                         <div className="bg-white p-2 sm:p-3 rounded-lg border">
@@ -487,10 +505,10 @@ const CoveragesSection = () => {
             </div>
             
             <div>
-              <Label htmlFor="receivedFrom" className="text-sm font-medium">مصدر التغطية *</Label>
+              <Label htmlFor="receivedFrom" className="text-sm font-medium">من (مصدر التغطية) *</Label>
               <Input
                 id="receivedFrom"
-                placeholder="اسم الشخص أو الجهة المرسلة"
+                placeholder="مثال: أحمد محمد"
                 value={newCoverage.receivedFrom}
                 onChange={(e) => setNewCoverage({ ...newCoverage, receivedFrom: e.target.value })}
                 className="mt-1"
@@ -498,10 +516,10 @@ const CoveragesSection = () => {
             </div>
             
             <div>
-              <Label htmlFor="receivedBy" className="text-sm font-medium">المستلم *</Label>
+              <Label htmlFor="receivedBy" className="text-sm font-medium">إلى (المستلم) *</Label>
               <Input
                 id="receivedBy"
-                placeholder="اسم الشخص أو الجهة المستلمة"
+                placeholder="مثال: شركة الخليج"
                 value={newCoverage.receivedBy}
                 onChange={(e) => setNewCoverage({ ...newCoverage, receivedBy: e.target.value })}
                 className="mt-1"
