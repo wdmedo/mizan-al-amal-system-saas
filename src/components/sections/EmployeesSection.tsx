@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Trash2, Briefcase, Users, DollarSign, Calendar, FileText } from 'lucide-react';
+import { Plus, Trash2, Briefcase, Users, DollarSign, Calendar, FileText, Info } from 'lucide-react';
 import { useAccountingData } from '@/hooks/useAccountingData';
 import PrintButton from '@/components/PrintButton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const EmployeesSection = () => {
   const { data, addEmployee, deleteEmployee, addEmployeeTransaction, deleteEmployeeTransaction } = useAccountingData();
@@ -113,6 +114,24 @@ const EmployeesSection = () => {
         <p className="text-gray-600 text-sm">إدارة بيانات الموظفين والرواتب والسلفيات</p>
       </div>
 
+      {/* Important Info Alert */}
+      <Alert className="border-blue-200 bg-blue-50 mb-6">
+        <Info className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-700">
+          <div className="space-y-2">
+            <p className="font-semibold">ملاحظة مهمة: جميع معاملات الموظفين تتم من وإلى الحساب الرئيسي للبنك</p>
+            <div className="text-sm">
+              <p className="font-medium mb-1">مثال على حساب الموظف:</p>
+              <p>• اسم الموظف: أحمد علي</p>
+              <p>• الراتب الشهري: 5,000 ريال</p>
+              <p>• إجمالي السلف: 2,000 ريال</p>
+              <p>• المتبقي له: 3,000 ريال</p>
+              <p className="text-xs mt-1 text-blue-600">* جميع المعاملات (سلف، دفعات، خصومات، مكافآت) تؤثر على الحساب الرئيسي</p>
+            </div>
+          </div>
+        </AlertDescription>
+      </Alert>
+
       <div id="employees-content">
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
@@ -157,7 +176,7 @@ const EmployeesSection = () => {
             <DialogTrigger asChild>
               <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-sm">
                 <DollarSign className="h-4 w-4 ml-2" />
-                إضافة معاملة مالية
+                إضافة معاملة مالية (من/إلى الحساب الرئيسي)
               </Button>
             </DialogTrigger>
             <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto">
@@ -166,7 +185,7 @@ const EmployeesSection = () => {
               </DialogHeader>
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="employee-select" className="text-sm">الموظف</Label>
+                  <Label htmlFor="employee-select" className="text-sm">الموظف *</Label>
                   <Select value={newTransaction.employeeId} onValueChange={(value) => setNewTransaction({ ...newTransaction, employeeId: value })}>
                     <SelectTrigger className="text-sm">
                       <SelectValue placeholder="اختر الموظف" />
@@ -179,42 +198,42 @@ const EmployeesSection = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="transaction-type" className="text-sm">نوع المعاملة</Label>
+                  <Label htmlFor="transaction-type" className="text-sm">نوع المعاملة *</Label>
                   <Select value={newTransaction.type} onValueChange={(value) => setNewTransaction({ ...newTransaction, type: value as any })}>
                     <SelectTrigger className="text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="advance">سلفة</SelectItem>
-                      <SelectItem value="salary_payment">دفعة راتب</SelectItem>
-                      <SelectItem value="deduction">خصم</SelectItem>
-                      <SelectItem value="bonus">مكافأة</SelectItem>
+                      <SelectItem value="advance">سلفة (خصم من البنك)</SelectItem>
+                      <SelectItem value="salary_payment">دفعة راتب (خصم من البنك)</SelectItem>
+                      <SelectItem value="deduction">خصم (إضافة للبنك)</SelectItem>
+                      <SelectItem value="bonus">مكافأة (خصم من البنك)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="transaction-amount" className="text-sm">المبلغ</Label>
+                  <Label htmlFor="transaction-amount" className="text-sm">المبلغ *</Label>
                   <Input
                     id="transaction-amount"
                     type="number"
-                    placeholder="0.00"
+                    placeholder="مثال: 1000"
                     value={newTransaction.amount}
                     onChange={(e) => setNewTransaction({ ...newTransaction, amount: e.target.value })}
                     className="text-sm"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="transaction-description" className="text-sm">الوصف</Label>
+                  <Label htmlFor="transaction-description" className="text-sm">الوصف *</Label>
                   <Input
                     id="transaction-description"
-                    placeholder="وصف المعاملة"
+                    placeholder="مثال: سلفة شهر ديسمبر"
                     value={newTransaction.description}
                     onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
                     className="text-sm"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="transaction-date" className="text-sm">التاريخ</Label>
+                  <Label htmlFor="transaction-date" className="text-sm">التاريخ *</Label>
                   <Input
                     id="transaction-date"
                     type="date"
@@ -350,10 +369,10 @@ const EmployeesSection = () => {
         <CardContent className="space-y-3 p-3">
           <div className="grid grid-cols-1 gap-3">
             <div>
-              <Label htmlFor="name" className="text-sm">الاسم</Label>
+              <Label htmlFor="name" className="text-sm">الاسم *</Label>
               <Input
                 id="name"
-                placeholder="اسم الموظف"
+                placeholder="مثال: أحمد علي"
                 value={newEmployee.name}
                 onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
                 className="text-sm"
@@ -361,22 +380,22 @@ const EmployeesSection = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="salary" className="text-sm">الراتب</Label>
+                <Label htmlFor="salary" className="text-sm">الراتب الشهري *</Label>
                 <Input
                   id="salary"
                   type="number"
-                  placeholder="0.00"
+                  placeholder="مثال: 5000"
                   value={newEmployee.salary}
                   onChange={(e) => setNewEmployee({ ...newEmployee, salary: e.target.value })}
                   className="text-sm"
                 />
               </div>
               <div>
-                <Label htmlFor="advances" className="text-sm">السلف</Label>
+                <Label htmlFor="advances" className="text-sm">السلف الأولية</Label>
                 <Input
                   id="advances"
                   type="number"
-                  placeholder="0.00"
+                  placeholder="مثال: 1000"
                   value={newEmployee.advances}
                   onChange={(e) => setNewEmployee({ ...newEmployee, advances: e.target.value })}
                   className="text-sm"
