@@ -23,7 +23,7 @@ const LoginForm = ({ onLogin }: LoginFormProps) => {
 
     // محاكاة تأخير تسجيل الدخول
     setTimeout(() => {
-      if (password === '0331122') {
+      if (password === '033112233') {
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('username', username || 'مستخدم');
         onLogin(true);
