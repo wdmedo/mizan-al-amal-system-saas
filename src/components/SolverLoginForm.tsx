@@ -1,18 +1,17 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, User, Calculator } from 'lucide-react';
+import { Calculator, User, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-interface LoginFormProps {
-  onLogin: (isLoggedIn: boolean) => void;
-  onSolverAccess: () => void;
+interface SolverLoginFormProps {
+  onLogin: (username: string) => void;
+  onBackToMain: () => void;
 }
 
-const LoginForm = ({ onLogin, onSolverAccess }: LoginFormProps) => {
+const SolverLoginForm = ({ onLogin, onBackToMain }: SolverLoginFormProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -22,20 +21,17 @@ const LoginForm = ({ onLogin, onSolverAccess }: LoginFormProps) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // محاكاة تأخير تسجيل الدخول
     setTimeout(() => {
-      if (password === '033112233') {
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('username', username || 'مستخدم');
-        onLogin(true);
+      if (password === 'solver123') {
+        onLogin(username || 'مستخدم الحاسبة');
         toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: "مرحباً بك في نظام المحاسبة الشامل",
+          title: "تم الدخول بنجاح",
+          description: "مرحباً بك في حاسبة الصيغ المالية",
         });
       } else {
         toast({
-          title: "خطأ في تسجيل الدخول",
-          description: "كلمة المرور غير صحيحة",
+          title: "خطأ في كلمة المرور",
+          description: "كلمة المرور غير صحيحة للحاسبة المالية",
           variant: "destructive",
         });
       }
@@ -44,17 +40,17 @@ const LoginForm = ({ onLogin, onSolverAccess }: LoginFormProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" dir="rtl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50" dir="rtl">
       <Card className="w-full max-w-md mx-4 shadow-2xl border-0 bg-white/90 backdrop-blur-lg">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-            <Lock className="h-8 w-8 text-white" />
+          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
+            <Calculator className="h-8 w-8 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            تسجيل الدخول
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+            دخول الحاسبة المالية
           </CardTitle>
           <CardDescription className="text-gray-600">
-            نظام المحاسبة الشامل لمؤسسة تمام السداد
+            الدخول إلى أداة حل المعادلات المالية المتقدمة
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -89,30 +85,28 @@ const LoginForm = ({ onLogin, onSolverAccess }: LoginFormProps) => {
                 required
               />
             </div>
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-              disabled={isLoading}
-            >
-              {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
-            </Button>
+            <div className="space-y-3">
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
+                disabled={isLoading}
+              >
+                {isLoading ? 'جاري الدخول...' : 'دخول الحاسبة'}
+              </Button>
+              <Button 
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={onBackToMain}
+              >
+                العودة للنظام الرئيسي
+              </Button>
+            </div>
           </form>
-          
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <Button 
-              type="button"
-              variant="outline"
-              className="w-full bg-gradient-to-r from-green-50 to-blue-50 hover:from-green-100 hover:to-blue-100 border-green-200"
-              onClick={onSolverAccess}
-            >
-              <Calculator className="h-4 w-4 ml-2" />
-              دخول الحاسبة المالية
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>
   );
 };
 
-export default LoginForm;
+export default SolverLoginForm;
