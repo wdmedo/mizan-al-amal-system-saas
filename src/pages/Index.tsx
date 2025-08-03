@@ -4,6 +4,7 @@ import Layout from '@/components/Layout';
 import LoginForm from '@/components/LoginForm';
 import SolverLoginForm from '@/components/SolverLoginForm';
 import FinancialSolver from '@/components/FinancialSolver';
+import VisitsAndCustomers from '@/pages/VisitsAndCustomers';
 import Dashboard from '@/components/Dashboard';
 import ExpensesSection from '@/components/sections/ExpensesSection';
 import PendingCustomersSection from '@/components/sections/PendingCustomersSection';
@@ -18,6 +19,7 @@ import { useAuth } from '@/hooks/useAuth';
 const Index = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showSolverLogin, setShowSolverLogin] = useState(false);
+  const [showVisitsPage, setShowVisitsPage] = useState(false);
   const [solverUser, setSolverUser] = useState<string | null>(null);
   const { isLoggedIn, login } = useAuth();
 
@@ -48,6 +50,15 @@ const Index = () => {
     );
   }
 
+  // إذا كان في صفحة متابعة الزيارات والعملاء
+  if (showVisitsPage) {
+    return (
+      <VisitsAndCustomers 
+        onBack={() => setShowVisitsPage(false)}
+      />
+    );
+  }
+
   // إذا كان في صفحة دخول الحاسبة
   if (showSolverLogin) {
     return (
@@ -64,6 +75,7 @@ const Index = () => {
       <LoginForm 
         onLogin={login} 
         onSolverAccess={() => setShowSolverLogin(true)}
+        onVisitsAccess={() => setShowVisitsPage(true)}
       />
     );
   }

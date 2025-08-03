@@ -10,9 +10,10 @@ import { useToast } from '@/hooks/use-toast';
 interface LoginFormProps {
   onLogin: (isLoggedIn: boolean) => void;
   onSolverAccess: () => void;
+  onVisitsAccess: () => void;
 }
 
-const LoginForm = ({ onLogin, onSolverAccess }: LoginFormProps) => {
+const LoginForm = ({ onLogin, onSolverAccess, onVisitsAccess }: LoginFormProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -113,7 +114,7 @@ const LoginForm = ({ onLogin, onSolverAccess }: LoginFormProps) => {
               type="button"
               variant="outline"
               className="w-full bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 border-orange-200"
-              onClick={() => {}}
+              onClick={onVisitsAccess}
             >
               متابعة الزيارات والعملاء
             </Button>
