@@ -169,6 +169,87 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_followups: {
+        Row: {
+          created_at: string
+          customer_name: string
+          follow_date: string
+          id: string
+          monday_status: string | null
+          sunday_status: string | null
+          thursday_status: string | null
+          tuesday_status: string | null
+          updated_at: string
+          wednesday_status: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          follow_date?: string
+          id?: string
+          monday_status?: string | null
+          sunday_status?: string | null
+          thursday_status?: string | null
+          tuesday_status?: string | null
+          updated_at?: string
+          wednesday_status?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          follow_date?: string
+          id?: string
+          monday_status?: string | null
+          sunday_status?: string | null
+          thursday_status?: string | null
+          tuesday_status?: string | null
+          updated_at?: string
+          wednesday_status?: string | null
+        }
+        Relationships: []
+      }
+      daily_visits: {
+        Row: {
+          bank: string | null
+          created_at: string
+          customer_name: string
+          customer_phone: string
+          date: string
+          day: string
+          id: string
+          mediator: string | null
+          notes: string | null
+          reception_employee: string | null
+          updated_at: string
+        }
+        Insert: {
+          bank?: string | null
+          created_at?: string
+          customer_name: string
+          customer_phone: string
+          date?: string
+          day: string
+          id?: string
+          mediator?: string | null
+          notes?: string | null
+          reception_employee?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bank?: string | null
+          created_at?: string
+          customer_name?: string
+          customer_phone?: string
+          date?: string
+          day?: string
+          id?: string
+          mediator?: string | null
+          notes?: string | null
+          reception_employee?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       employee_transactions: {
         Row: {
           amount: number

@@ -1,78 +1,162 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Users, Calendar, ArrowLeft } from 'lucide-react';
+import { Plus, Users, Calendar, ArrowLeft, Search, CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface VisitsAndCustomersProps {
   onBack: () => void;
 }
 
 interface DailyVisit {
-  id: string;
+  id?: string;
   day: string;
   date: string;
-  customerName: string;
-  customerPhone: string;
+  customer_name: string;
+  customer_phone: string;
   mediator: string;
-  receptionEmployee: string;
+  reception_employee: string;
   bank: string;
   notes: string;
 }
 
 interface CustomerFollowUp {
-  id: string;
-  name: string;
-  sunday: string;
-  monday: string;
-  tuesday: string;
-  wednesday: string;
-  thursday: string;
+  id?: string;
+  customer_name: string;
+  sunday_status: string;
+  monday_status: string;
+  tuesday_status: string;
+  wednesday_status: string;
+  thursday_status: string;
+  follow_date: string;
 }
 
 const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
   const { toast } = useToast();
   
+  // Search states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchDate, setSearchDate] = useState<Date | undefined>(new Date());
+  
   // Daily visits state
-  const [dailyVisits, setDailyVisits] = useState<DailyVisit[]>([
-    {
-      id: '1',
-      day: 'الأحد',
-      date: '03/08/2025',
-      customerName: '',
-      customerPhone: '',
-      mediator: '',
-      receptionEmployee: '',
-      bank: '',
-      notes: ''
-    }
-  ]);
+  const [dailyVisits, setDailyVisits] = useState<DailyVisit[]>([]);
+  const [filteredDailyVisits, setFilteredDailyVisits] = useState<DailyVisit[]>([]);
 
   // Customer follow-up state
-  const [customerFollowUps, setCustomerFollowUps] = useState<CustomerFollowUp[]>([
-    {
-      id: '1',
-      name: '',
-      sunday: '',
-      monday: '',
-      tuesday: '',
-      wednesday: '',
-      thursday: ''
+  const [customerFollowUps, setCustomerFollowUps] = useState<CustomerFollowUp[]>([]);
+  const [filteredCustomerFollowUps, setFilteredCustomerFollowUps] = useState<CustomerFollowUp[]>([]);
+
+  // Loading states
+  const [isLoadingVisits, setIsLoadingVisits] = useState(false);
+  const [isLoadingFollowUps, setIsLoadingFollowUps] = useState(false);
+
+  // Load data on component mount
+  useEffect(() => {
+    loadDailyVisits();
+    loadCustomerFollowUps();
+  }, []);
+
+  // Filter data when search term or date changes
+  useEffect(() => {
+    filterDailyVisits();
+  }, [searchTerm, searchDate, dailyVisits]);
+
+  useEffect(() => {
+    filterCustomerFollowUps();
+  }, [searchTerm, customerFollowUps]);
+
+  const filterDailyVisits = () => {
+    let filtered = dailyVisits;
+    
+    if (searchTerm) {
+      filtered = filtered.filter(visit => 
+        visit.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        visit.customer_phone.includes(searchTerm) ||
+        visit.mediator.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        visit.bank.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
-  ]);
+    
+    if (searchDate) {
+      const formattedDate = format(searchDate, 'yyyy-MM-dd');
+      filtered = filtered.filter(visit => visit.date === formattedDate);
+    }
+    
+    setFilteredDailyVisits(filtered);
+  };
+
+  const filterCustomerFollowUps = () => {
+    let filtered = customerFollowUps;
+    
+    if (searchTerm) {
+      filtered = filtered.filter(followUp => 
+        followUp.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    setFilteredCustomerFollowUps(filtered);
+  };
+
+  const loadDailyVisits = async () => {
+    setIsLoadingVisits(true);
+    try {
+      const { data, error } = await supabase
+        .from('daily_visits')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+      setDailyVisits(data || []);
+    } catch (error) {
+      console.error('Error loading daily visits:', error);
+      toast({
+        title: "خطأ في تحميل البيانات",
+        description: "فشل في تحميل بيانات الزيارات اليومية",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingVisits(false);
+    }
+  };
+
+  const loadCustomerFollowUps = async () => {
+    setIsLoadingFollowUps(true);
+    try {
+      const { data, error } = await supabase
+        .from('customer_followups')
+        .select('*')
+        .order('follow_date', { ascending: false });
+
+      if (error) throw error;
+      setCustomerFollowUps(data || []);
+    } catch (error) {
+      console.error('Error loading customer follow-ups:', error);
+      toast({
+        title: "خطأ في تحميل البيانات",
+        description: "فشل في تحميل بيانات متابعة العملاء",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingFollowUps(false);
+    }
+  };
 
   const addDailyVisitRow = () => {
     const newVisit: DailyVisit = {
-      id: Date.now().toString(),
       day: '',
-      date: '',
-      customerName: '',
-      customerPhone: '',
+      date: searchDate ? format(searchDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+      customer_name: '',
+      customer_phone: '',
       mediator: '',
-      receptionEmployee: '',
+      reception_employee: '',
       bank: '',
       notes: ''
     };
@@ -81,45 +165,140 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
 
   const addCustomerFollowUpRow = () => {
     const newFollowUp: CustomerFollowUp = {
-      id: Date.now().toString(),
-      name: '',
-      sunday: '',
-      monday: '',
-      tuesday: '',
-      wednesday: '',
-      thursday: ''
+      customer_name: '',
+      sunday_status: '',
+      monday_status: '',
+      tuesday_status: '',
+      wednesday_status: '',
+      thursday_status: '',
+      follow_date: format(new Date(), 'yyyy-MM-dd')
     };
     setCustomerFollowUps([...customerFollowUps, newFollowUp]);
   };
 
-  const updateDailyVisit = (id: string, field: keyof DailyVisit, value: string) => {
-    setDailyVisits(visits => 
-      visits.map(visit => 
-        visit.id === id ? { ...visit, [field]: value } : visit
-      )
-    );
+  const updateDailyVisit = (index: number, field: keyof DailyVisit, value: string) => {
+    const updatedVisits = [...dailyVisits];
+    updatedVisits[index] = { ...updatedVisits[index], [field]: value };
+    setDailyVisits(updatedVisits);
   };
 
-  const updateCustomerFollowUp = (id: string, field: keyof CustomerFollowUp, value: string) => {
-    setCustomerFollowUps(followUps => 
-      followUps.map(followUp => 
-        followUp.id === id ? { ...followUp, [field]: value } : followUp
-      )
-    );
+  const updateCustomerFollowUp = (index: number, field: keyof CustomerFollowUp, value: string) => {
+    const updatedFollowUps = [...customerFollowUps];
+    updatedFollowUps[index] = { ...updatedFollowUps[index], [field]: value };
+    setCustomerFollowUps(updatedFollowUps);
   };
 
-  const saveDailyVisits = () => {
-    toast({
-      title: "تم الحفظ بنجاح",
-      description: "تم حفظ بيانات الكشف اليومي للعملاء",
-    });
+  const saveDailyVisits = async () => {
+    try {
+      // Filter out empty visits
+      const validVisits = dailyVisits.filter(visit => 
+        visit.customer_name.trim() !== '' || 
+        visit.customer_phone.trim() !== ''
+      );
+
+      if (validVisits.length === 0) {
+        toast({
+          title: "تنبيه",
+          description: "لا توجد بيانات صالحة للحفظ",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Separate new visits from existing ones
+      const newVisits = validVisits.filter(visit => !visit.id);
+      const existingVisits = validVisits.filter(visit => visit.id);
+
+      // Insert new visits
+      if (newVisits.length > 0) {
+        const { error: insertError } = await supabase
+          .from('daily_visits')
+          .insert(newVisits.map(({ id, ...visit }) => visit));
+        
+        if (insertError) throw insertError;
+      }
+
+      // Update existing visits
+      for (const visit of existingVisits) {
+        const { id, ...visitData } = visit;
+        const { error: updateError } = await supabase
+          .from('daily_visits')
+          .update(visitData)
+          .eq('id', id);
+        
+        if (updateError) throw updateError;
+      }
+
+      toast({
+        title: "تم الحفظ بنجاح",
+        description: "تم حفظ بيانات الكشف اليومي للعملاء",
+      });
+      
+      loadDailyVisits(); // Reload data
+    } catch (error) {
+      console.error('Error saving daily visits:', error);
+      toast({
+        title: "خطأ في الحفظ",
+        description: "فشل في حفظ بيانات الكشف اليومي",
+        variant: "destructive",
+      });
+    }
   };
 
-  const saveCustomerFollowUps = () => {
-    toast({
-      title: "تم الحفظ بنجاح", 
-      description: "تم حفظ بيانات متابعة العملاء",
-    });
+  const saveCustomerFollowUps = async () => {
+    try {
+      // Filter out empty follow-ups
+      const validFollowUps = customerFollowUps.filter(followUp => 
+        followUp.customer_name.trim() !== ''
+      );
+
+      if (validFollowUps.length === 0) {
+        toast({
+          title: "تنبيه",
+          description: "لا توجد بيانات صالحة للحفظ",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Separate new follow-ups from existing ones
+      const newFollowUps = validFollowUps.filter(followUp => !followUp.id);
+      const existingFollowUps = validFollowUps.filter(followUp => followUp.id);
+
+      // Insert new follow-ups
+      if (newFollowUps.length > 0) {
+        const { error: insertError } = await supabase
+          .from('customer_followups')
+          .insert(newFollowUps.map(({ id, ...followUp }) => followUp));
+        
+        if (insertError) throw insertError;
+      }
+
+      // Update existing follow-ups
+      for (const followUp of existingFollowUps) {
+        const { id, ...followUpData } = followUp;
+        const { error: updateError } = await supabase
+          .from('customer_followups')
+          .update(followUpData)
+          .eq('id', id);
+        
+        if (updateError) throw updateError;
+      }
+
+      toast({
+        title: "تم الحفظ بنجاح", 
+        description: "تم حفظ بيانات متابعة العملاء",
+      });
+      
+      loadCustomerFollowUps(); // Reload data
+    } catch (error) {
+      console.error('Error saving customer follow-ups:', error);
+      toast({
+        title: "خطأ في الحفظ",
+        description: "فشل في حفظ بيانات متابعة العملاء",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -140,9 +319,45 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
               متابعة الزيارات والعملاء
             </h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Users className="h-6 w-6 text-blue-600" />
-            <Calendar className="h-6 w-6 text-purple-600" />
+          <div className="flex items-center gap-4">
+            {/* Search Controls */}
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Input
+                  placeholder="البحث في البيانات..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pr-10 w-64"
+                />
+              </div>
+              
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-40 justify-start text-right"
+                  >
+                    <CalendarIcon className="ml-2 h-4 w-4" />
+                    {searchDate ? format(searchDate, "dd/MM/yyyy") : "اختر التاريخ"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={searchDate}
+                    onSelect={setSearchDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Users className="h-6 w-6 text-blue-600" />
+              <Calendar className="h-6 w-6 text-purple-600" />
+            </div>
           </div>
         </div>
       </header>
@@ -188,74 +403,88 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {dailyVisits.map((visit) => (
-                    <TableRow key={visit.id} className="hover:bg-blue-25">
-                      <TableCell>
-                        <Input
-                          value={visit.day}
-                          onChange={(e) => updateDailyVisit(visit.id, 'day', e.target.value)}
-                          className="text-center border-0 bg-transparent"
-                          placeholder="اليوم"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="date"
-                          value={visit.date}
-                          onChange={(e) => updateDailyVisit(visit.id, 'date', e.target.value)}
-                          className="text-center border-0 bg-transparent"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={visit.customerName}
-                          onChange={(e) => updateDailyVisit(visit.id, 'customerName', e.target.value)}
-                          className="text-center border-0 bg-transparent"
-                          placeholder="اسم العميل"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={visit.customerPhone}
-                          onChange={(e) => updateDailyVisit(visit.id, 'customerPhone', e.target.value)}
-                          className="text-center border-0 bg-transparent"
-                          placeholder="رقم الجوال"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={visit.mediator}
-                          onChange={(e) => updateDailyVisit(visit.id, 'mediator', e.target.value)}
-                          className="text-center border-0 bg-transparent"
-                          placeholder="الوسيط"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={visit.receptionEmployee}
-                          onChange={(e) => updateDailyVisit(visit.id, 'receptionEmployee', e.target.value)}
-                          className="text-center border-0 bg-transparent"
-                          placeholder="موظف الاستقبال"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={visit.bank}
-                          onChange={(e) => updateDailyVisit(visit.id, 'bank', e.target.value)}
-                          className="text-center border-0 bg-transparent"
-                          placeholder="البنك"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={visit.notes}
-                          onChange={(e) => updateDailyVisit(visit.id, 'notes', e.target.value)}
-                          className="text-center border-0 bg-transparent"
-                          placeholder="ملاحظات"
-                        />
+                  {isLoadingVisits ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8">
+                        جاري تحميل البيانات...
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : filteredDailyVisits.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8">
+                        لا توجد بيانات للعرض
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredDailyVisits.map((visit, index) => (
+                      <TableRow key={visit.id || index} className="hover:bg-blue-25">
+                        <TableCell>
+                          <Input
+                            value={visit.day}
+                            onChange={(e) => updateDailyVisit(index, 'day', e.target.value)}
+                            className="text-center border-0 bg-transparent"
+                            placeholder="اليوم"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="date"
+                            value={visit.date}
+                            onChange={(e) => updateDailyVisit(index, 'date', e.target.value)}
+                            className="text-center border-0 bg-transparent"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={visit.customer_name}
+                            onChange={(e) => updateDailyVisit(index, 'customer_name', e.target.value)}
+                            className="text-center border-0 bg-transparent"
+                            placeholder="اسم العميل"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={visit.customer_phone}
+                            onChange={(e) => updateDailyVisit(index, 'customer_phone', e.target.value)}
+                            className="text-center border-0 bg-transparent"
+                            placeholder="رقم الجوال"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={visit.mediator}
+                            onChange={(e) => updateDailyVisit(index, 'mediator', e.target.value)}
+                            className="text-center border-0 bg-transparent"
+                            placeholder="الوسيط"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={visit.reception_employee}
+                            onChange={(e) => updateDailyVisit(index, 'reception_employee', e.target.value)}
+                            className="text-center border-0 bg-transparent"
+                            placeholder="موظف الاستقبال"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={visit.bank}
+                            onChange={(e) => updateDailyVisit(index, 'bank', e.target.value)}
+                            className="text-center border-0 bg-transparent"
+                            placeholder="البنك"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={visit.notes}
+                            onChange={(e) => updateDailyVisit(index, 'notes', e.target.value)}
+                            className="text-center border-0 bg-transparent"
+                            placeholder="ملاحظات"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -269,7 +498,7 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
               <div>
                 <CardTitle className="text-xl font-bold text-purple-700 flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  متابعة العملاء (12/07/2025)
+                  متابعة العملاء
                 </CardTitle>
                 <CardDescription className="text-gray-600">
                   متابعة حالة العملاء خلال أيام الأسبوع
@@ -300,58 +529,72 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {customerFollowUps.map((followUp) => (
-                    <TableRow key={followUp.id} className="hover:bg-purple-25">
-                      <TableCell>
-                        <Input
-                          value={followUp.name}
-                          onChange={(e) => updateCustomerFollowUp(followUp.id, 'name', e.target.value)}
-                          className="text-center border-0 bg-transparent font-medium"
-                          placeholder="اسم العميل"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={followUp.sunday}
-                          onChange={(e) => updateCustomerFollowUp(followUp.id, 'sunday', e.target.value)}
-                          className="text-center border-0 bg-transparent"
-                          placeholder="حالة الأحد"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={followUp.monday}
-                          onChange={(e) => updateCustomerFollowUp(followUp.id, 'monday', e.target.value)}
-                          className="text-center border-0 bg-transparent"
-                          placeholder="حالة الاثنين"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={followUp.tuesday}
-                          onChange={(e) => updateCustomerFollowUp(followUp.id, 'tuesday', e.target.value)}
-                          className="text-center border-0 bg-transparent"
-                          placeholder="حالة الثلاثاء"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={followUp.wednesday}
-                          onChange={(e) => updateCustomerFollowUp(followUp.id, 'wednesday', e.target.value)}
-                          className="text-center border-0 bg-transparent"
-                          placeholder="حالة الأربعاء"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={followUp.thursday}
-                          onChange={(e) => updateCustomerFollowUp(followUp.id, 'thursday', e.target.value)}
-                          className="text-center border-0 bg-transparent"
-                          placeholder="حالة الخميس"
-                        />
+                  {isLoadingFollowUps ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8">
+                        جاري تحميل البيانات...
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : filteredCustomerFollowUps.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8">
+                        لا توجد بيانات للعرض
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredCustomerFollowUps.map((followUp, index) => (
+                      <TableRow key={followUp.id || index} className="hover:bg-purple-25">
+                        <TableCell>
+                          <Input
+                            value={followUp.customer_name}
+                            onChange={(e) => updateCustomerFollowUp(index, 'customer_name', e.target.value)}
+                            className="text-center border-0 bg-transparent font-medium"
+                            placeholder="اسم العميل"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={followUp.sunday_status}
+                            onChange={(e) => updateCustomerFollowUp(index, 'sunday_status', e.target.value)}
+                            className="text-center border-0 bg-transparent"
+                            placeholder="حالة الأحد"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={followUp.monday_status}
+                            onChange={(e) => updateCustomerFollowUp(index, 'monday_status', e.target.value)}
+                            className="text-center border-0 bg-transparent"
+                            placeholder="حالة الاثنين"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={followUp.tuesday_status}
+                            onChange={(e) => updateCustomerFollowUp(index, 'tuesday_status', e.target.value)}
+                            className="text-center border-0 bg-transparent"
+                            placeholder="حالة الثلاثاء"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={followUp.wednesday_status}
+                            onChange={(e) => updateCustomerFollowUp(index, 'wednesday_status', e.target.value)}
+                            className="text-center border-0 bg-transparent"
+                            placeholder="حالة الأربعاء"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={followUp.thursday_status}
+                            onChange={(e) => updateCustomerFollowUp(index, 'thursday_status', e.target.value)}
+                            className="text-center border-0 bg-transparent"
+                            placeholder="حالة الخميس"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>
