@@ -98,7 +98,7 @@ const LoginForm = ({ onLogin, onSolverAccess }: LoginFormProps) => {
             </Button>
           </form>
           
-          <div className="mt-6 pt-6 border-t border-gray-200">
+          <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
             <Button 
               type="button"
               variant="outline"
@@ -107,6 +107,15 @@ const LoginForm = ({ onLogin, onSolverAccess }: LoginFormProps) => {
             >
               <Calculator className="h-4 w-4 ml-2" />
               دخول الحاسبة المالية
+            </Button>
+            
+            <Button 
+              type="button"
+              variant="outline"
+              className="w-full bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 border-orange-200"
+              onClick={() => {}}
+            >
+              متابعة الزيارات والعملاء
             </Button>
           </div>
         </CardContent>
