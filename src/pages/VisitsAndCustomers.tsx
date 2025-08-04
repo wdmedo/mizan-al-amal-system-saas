@@ -351,31 +351,38 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" dir="rtl">
       <header className="bg-white/90 backdrop-blur-lg border-b border-blue-100 shadow-sm sticky top-0 z-50">
-        <div className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={onBack}
-              className="hover:bg-blue-100"
-            >
-              <ArrowLeft className="h-4 w-4 ml-2" />
-              العودة
-            </Button>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              متابعة الزيارات والعملاء
-            </h1>
+        <div className="flex flex-col gap-4 px-4 md:px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 md:gap-4">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={onBack}
+                className="hover:bg-blue-100"
+              >
+                <ArrowLeft className="h-4 w-4 ml-1 md:ml-2" />
+                <span className="hidden sm:inline">العودة</span>
+              </Button>
+              <h1 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                متابعة الزيارات والعملاء
+              </h1>
+            </div>
+            <div className="flex items-center gap-2 md:hidden">
+              <Users className="h-5 w-5 text-blue-600" />
+              <Calendar className="h-5 w-5 text-purple-600" />
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            {/* Search Controls */}
-            <div className="flex items-center gap-2">
-              <div className="relative">
+          
+          {/* Search Controls - Mobile responsive */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="relative flex-1 sm:flex-none">
                 <Search className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input
                   placeholder="البحث في البيانات..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pr-10 w-64"
+                  className="pr-10 w-full sm:w-48 md:w-64"
                 />
               </div>
               
@@ -383,7 +390,7 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-40 justify-start text-right"
+                    className="w-full sm:w-40 justify-start text-right"
                   >
                     <CalendarIcon className="ml-2 h-4 w-4" />
                     {searchDate ? format(searchDate, "dd/MM/yyyy") : "اختر التاريخ"}
@@ -401,7 +408,7 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
               </Popover>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2">
               <Users className="h-6 w-6 text-blue-600" />
               <Calendar className="h-6 w-6 text-purple-600" />
             </div>
@@ -409,21 +416,21 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
         </div>
       </header>
 
-      <div className="p-6 space-y-8">
+      <div className="p-3 md:p-6 space-y-6 md:space-y-8">
         {/* Daily Visits Section */}
         <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-lg">
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          <CardHeader className="p-4 md:p-6">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <CardTitle className="text-xl font-bold text-blue-700 flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  الكشف اليومي للعملاء (زيارة المكان)
+                <CardTitle className="text-lg md:text-xl font-bold text-blue-700 flex items-center gap-2">
+                  <Calendar className="h-4 w-4 md:h-5 md:w-5" />
+                  الكشف اليومي للعملاء
                 </CardTitle>
-                <CardDescription className="text-gray-600">
+                <CardDescription className="text-sm md:text-base text-gray-600 mt-1">
                   تسجيل ومتابعة زيارات العملاء اليومية
                 </CardDescription>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Button onClick={addDailyVisitRow} size="sm" className="bg-blue-600 hover:bg-blue-700">
                   <Plus className="h-4 w-4 ml-2" />
                   إضافة صف
@@ -434,21 +441,22 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-blue-50">
-                    <TableHead className="text-center font-bold">اليوم</TableHead>
-                    <TableHead className="text-center font-bold">التاريخ</TableHead>
-                    <TableHead className="text-center font-bold">اسم العميل</TableHead>
-                    <TableHead className="text-center font-bold">جوال العميل</TableHead>
-                    <TableHead className="text-center font-bold">الوسيط</TableHead>
-                    <TableHead className="text-center font-bold">موظف الاستقبال</TableHead>
-                    <TableHead className="text-center font-bold">البنك</TableHead>
-                    <TableHead className="text-center font-bold">حالته</TableHead>
-                  </TableRow>
-                </TableHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-gray-100">
+              <div className="min-w-[800px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-blue-50">
+                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[80px]">اليوم</TableHead>
+                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">التاريخ</TableHead>
+                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[120px]">اسم العميل</TableHead>
+                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">جوال العميل</TableHead>
+                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">الوسيط</TableHead>
+                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[120px]">موظف الاستقبال</TableHead>
+                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">البنك</TableHead>
+                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[150px]">حالته</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {isLoadingVisits ? (
                     <TableRow>
@@ -465,93 +473,94 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
                   ) : (
                     filteredDailyVisits.map((visit, index) => (
                       <TableRow key={visit.id || index} className="hover:bg-blue-25">
-                        <TableCell>
-                          <Input
-                            value={visit.day}
-                            onChange={(e) => updateDailyVisit(index, 'day', e.target.value)}
-                            className="text-center border-0 bg-transparent"
-                            placeholder="اليوم"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            type="date"
-                            value={visit.date}
-                            onChange={(e) => updateDailyVisit(index, 'date', e.target.value)}
-                            className="text-center border-0 bg-transparent"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={visit.customer_name}
-                            onChange={(e) => updateDailyVisit(index, 'customer_name', e.target.value)}
-                            className="text-center border-0 bg-transparent"
-                            placeholder="اسم العميل"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={visit.customer_phone}
-                            onChange={(e) => updateDailyVisit(index, 'customer_phone', e.target.value)}
-                            className="text-center border-0 bg-transparent"
-                            placeholder="رقم الجوال"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={visit.mediator}
-                            onChange={(e) => updateDailyVisit(index, 'mediator', e.target.value)}
-                            className="text-center border-0 bg-transparent"
-                            placeholder="الوسيط"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={visit.reception_employee}
-                            onChange={(e) => updateDailyVisit(index, 'reception_employee', e.target.value)}
-                            className="text-center border-0 bg-transparent"
-                            placeholder="موظف الاستقبال"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={visit.bank}
-                            onChange={(e) => updateDailyVisit(index, 'bank', e.target.value)}
-                            className="text-center border-0 bg-transparent"
-                            placeholder="البنك"
-                          />
-                        </TableCell>
-                         <TableCell>
-                           <Textarea
-                             value={visit.notes}
-                             onChange={(e) => updateDailyVisit(index, 'notes', e.target.value)}
-                             className="text-center border-0 bg-transparent min-h-[60px] resize-none"
-                             placeholder="حالة العميل"
+                         <TableCell className="px-1 md:px-2">
+                           <Input
+                             value={visit.day}
+                             onChange={(e) => updateDailyVisit(index, 'day', e.target.value)}
+                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             placeholder="اليوم"
                            />
                          </TableCell>
+                         <TableCell className="px-1 md:px-2">
+                           <Input
+                             type="date"
+                             value={visit.date}
+                             onChange={(e) => updateDailyVisit(index, 'date', e.target.value)}
+                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                           />
+                         </TableCell>
+                         <TableCell className="px-1 md:px-2">
+                           <Input
+                             value={visit.customer_name}
+                             onChange={(e) => updateDailyVisit(index, 'customer_name', e.target.value)}
+                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             placeholder="اسم العميل"
+                           />
+                         </TableCell>
+                         <TableCell className="px-1 md:px-2">
+                           <Input
+                             value={visit.customer_phone}
+                             onChange={(e) => updateDailyVisit(index, 'customer_phone', e.target.value)}
+                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             placeholder="رقم الجوال"
+                           />
+                         </TableCell>
+                         <TableCell className="px-1 md:px-2">
+                           <Input
+                             value={visit.mediator}
+                             onChange={(e) => updateDailyVisit(index, 'mediator', e.target.value)}
+                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             placeholder="الوسيط"
+                           />
+                         </TableCell>
+                         <TableCell className="px-1 md:px-2">
+                           <Input
+                             value={visit.reception_employee}
+                             onChange={(e) => updateDailyVisit(index, 'reception_employee', e.target.value)}
+                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             placeholder="موظف الاستقبال"
+                           />
+                         </TableCell>
+                         <TableCell className="px-1 md:px-2">
+                           <Input
+                             value={visit.bank}
+                             onChange={(e) => updateDailyVisit(index, 'bank', e.target.value)}
+                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             placeholder="البنك"
+                           />
+                         </TableCell>
+                          <TableCell className="px-1 md:px-2">
+                            <Textarea
+                              value={visit.notes}
+                              onChange={(e) => updateDailyVisit(index, 'notes', e.target.value)}
+                              className="text-center border-0 bg-transparent min-h-[60px] resize-none text-xs md:text-sm"
+                              placeholder="حالة العميل"
+                            />
+                          </TableCell>
                       </TableRow>
                     ))
                   )}
                 </TableBody>
-              </Table>
-            </div>
-          </CardContent>
+                 </Table>
+               </div>
+             </div>
+           </CardContent>
         </Card>
 
         {/* Customer Follow-up Section */}
         <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-lg">
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          <CardHeader className="p-4 md:p-6">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <CardTitle className="text-xl font-bold text-purple-700 flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+                <CardTitle className="text-lg md:text-xl font-bold text-purple-700 flex items-center gap-2">
+                  <Users className="h-4 w-4 md:h-5 md:w-5" />
                   متابعة العملاء
                 </CardTitle>
-                <CardDescription className="text-gray-600">
+                <CardDescription className="text-sm md:text-base text-gray-600 mt-1">
                   متابعة حالة العملاء خلال أيام الأسبوع
                 </CardDescription>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Button onClick={addCustomerFollowUpRow} size="sm" className="bg-purple-600 hover:bg-purple-700">
                   <Plus className="h-4 w-4 ml-2" />
                   إضافة عميل
@@ -562,19 +571,20 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-purple-50">
-                    <TableHead className="text-center font-bold">الاسم</TableHead>
-                    <TableHead className="text-center font-bold">الأحد</TableHead>
-                    <TableHead className="text-center font-bold">الاثنين</TableHead>
-                    <TableHead className="text-center font-bold">الثلاثاء</TableHead>
-                    <TableHead className="text-center font-bold">الأربعاء</TableHead>
-                    <TableHead className="text-center font-bold">الخميس</TableHead>
-                  </TableRow>
-                </TableHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-purple-200 scrollbar-track-gray-100">
+              <div className="min-w-[700px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-purple-50">
+                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[120px]">الاسم</TableHead>
+                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">الأحد</TableHead>
+                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">الاثنين</TableHead>
+                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">الثلاثاء</TableHead>
+                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">الأربعاء</TableHead>
+                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">الخميس</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {isLoadingFollowUps ? (
                     <TableRow>
@@ -591,59 +601,60 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
                   ) : (
                     filteredCustomerFollowUps.map((followUp, index) => (
                       <TableRow key={followUp.id || index} className="hover:bg-purple-25">
-                        <TableCell>
-                          <Input
-                            value={followUp.customer_name}
-                            onChange={(e) => updateCustomerFollowUp(index, 'customer_name', e.target.value)}
-                            className="text-center border-0 bg-transparent font-medium"
-                            placeholder="اسم العميل"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={followUp.sunday_status}
-                            onChange={(e) => updateCustomerFollowUp(index, 'sunday_status', e.target.value)}
-                            className="text-center border-0 bg-transparent"
-                            placeholder="حالة الأحد"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={followUp.monday_status}
-                            onChange={(e) => updateCustomerFollowUp(index, 'monday_status', e.target.value)}
-                            className="text-center border-0 bg-transparent"
-                            placeholder="حالة الاثنين"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={followUp.tuesday_status}
-                            onChange={(e) => updateCustomerFollowUp(index, 'tuesday_status', e.target.value)}
-                            className="text-center border-0 bg-transparent"
-                            placeholder="حالة الثلاثاء"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={followUp.wednesday_status}
-                            onChange={(e) => updateCustomerFollowUp(index, 'wednesday_status', e.target.value)}
-                            className="text-center border-0 bg-transparent"
-                            placeholder="حالة الأربعاء"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={followUp.thursday_status}
-                            onChange={(e) => updateCustomerFollowUp(index, 'thursday_status', e.target.value)}
-                            className="text-center border-0 bg-transparent"
-                            placeholder="حالة الخميس"
-                          />
-                        </TableCell>
+                         <TableCell className="px-1 md:px-2">
+                           <Input
+                             value={followUp.customer_name}
+                             onChange={(e) => updateCustomerFollowUp(index, 'customer_name', e.target.value)}
+                             className="text-center border-0 bg-transparent font-medium text-xs md:text-sm"
+                             placeholder="اسم العميل"
+                           />
+                         </TableCell>
+                         <TableCell className="px-1 md:px-2">
+                           <Input
+                             value={followUp.sunday_status}
+                             onChange={(e) => updateCustomerFollowUp(index, 'sunday_status', e.target.value)}
+                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             placeholder="حالة الأحد"
+                           />
+                         </TableCell>
+                         <TableCell className="px-1 md:px-2">
+                           <Input
+                             value={followUp.monday_status}
+                             onChange={(e) => updateCustomerFollowUp(index, 'monday_status', e.target.value)}
+                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             placeholder="حالة الاثنين"
+                           />
+                         </TableCell>
+                         <TableCell className="px-1 md:px-2">
+                           <Input
+                             value={followUp.tuesday_status}
+                             onChange={(e) => updateCustomerFollowUp(index, 'tuesday_status', e.target.value)}
+                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             placeholder="حالة الثلاثاء"
+                           />
+                         </TableCell>
+                         <TableCell className="px-1 md:px-2">
+                           <Input
+                             value={followUp.wednesday_status}
+                             onChange={(e) => updateCustomerFollowUp(index, 'wednesday_status', e.target.value)}
+                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             placeholder="حالة الأربعاء"
+                           />
+                         </TableCell>
+                         <TableCell className="px-1 md:px-2">
+                           <Input
+                             value={followUp.thursday_status}
+                             onChange={(e) => updateCustomerFollowUp(index, 'thursday_status', e.target.value)}
+                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             placeholder="حالة الخميس"
+                           />
+                         </TableCell>
                       </TableRow>
                     ))
                   )}
-                </TableBody>
-              </Table>
+                 </TableBody>
+                </Table>
+              </div>
             </div>
           </CardContent>
         </Card>
