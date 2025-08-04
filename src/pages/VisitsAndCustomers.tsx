@@ -177,25 +177,54 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
     setCustomerFollowUps([...customerFollowUps, newFollowUp]);
   };
 
-  const updateDailyVisit = (index: number, field: keyof DailyVisit, value: string) => {
+  const updateDailyVisit = (filteredIndex: number, field: keyof DailyVisit, value: string) => {
+    const visitToUpdate = filteredDailyVisits[filteredIndex];
+    if (!visitToUpdate) return;
+    
+    // Find the original index in the dailyVisits array
+    const originalIndex = dailyVisits.findIndex(visit => 
+      visitToUpdate.id ? visit.id === visitToUpdate.id : 
+      visit.date === visitToUpdate.date && 
+      visit.customer_name === visitToUpdate.customer_name && 
+      visit.customer_phone === visitToUpdate.customer_phone
+    );
+    
+    if (originalIndex === -1) return;
+    
     const updatedVisits = [...dailyVisits];
-    updatedVisits[index] = { ...updatedVisits[index], [field]: value };
+    updatedVisits[originalIndex] = { ...updatedVisits[originalIndex], [field]: value };
     setDailyVisits(updatedVisits);
   };
 
-  const updateCustomerFollowUp = (index: number, field: keyof CustomerFollowUp, value: string) => {
+  const updateCustomerFollowUp = (filteredIndex: number, field: keyof CustomerFollowUp, value: string) => {
+    const followUpToUpdate = filteredCustomerFollowUps[filteredIndex];
+    if (!followUpToUpdate) return;
+    
+    // Find the original index in the customerFollowUps array
+    const originalIndex = customerFollowUps.findIndex(followUp => 
+      followUpToUpdate.id ? followUp.id === followUpToUpdate.id : 
+      followUp.customer_name === followUpToUpdate.customer_name && 
+      followUp.follow_date === followUpToUpdate.follow_date
+    );
+    
+    if (originalIndex === -1) return;
+    
     const updatedFollowUps = [...customerFollowUps];
-    updatedFollowUps[index] = { ...updatedFollowUps[index], [field]: value };
+    updatedFollowUps[originalIndex] = { ...updatedFollowUps[originalIndex], [field]: value };
     setCustomerFollowUps(updatedFollowUps);
   };
 
   const saveDailyVisits = async () => {
     try {
+      console.log('Starting to save daily visits:', dailyVisits);
+      
       // Filter out empty visits
       const validVisits = dailyVisits.filter(visit => 
         visit.customer_name.trim() !== '' || 
         visit.customer_phone.trim() !== ''
       );
+
+      console.log('Valid visits:', validVisits);
 
       if (validVisits.length === 0) {
         toast({
@@ -210,24 +239,41 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
       const newVisits = validVisits.filter(visit => !visit.id);
       const existingVisits = validVisits.filter(visit => visit.id);
 
+      console.log('New visits to insert:', newVisits);
+      console.log('Existing visits to update:', existingVisits);
+
       // Insert new visits
       if (newVisits.length > 0) {
-        const { error: insertError } = await supabase
-          .from('daily_visits')
-          .insert(newVisits.map(({ id, ...visit }) => visit));
+        const insertData = newVisits.map(({ id, ...visit }) => visit);
+        console.log('Inserting data:', insertData);
         
-        if (insertError) throw insertError;
+        const { data, error: insertError } = await supabase
+          .from('daily_visits')
+          .insert(insertData)
+          .select();
+        
+        if (insertError) {
+          console.error('Insert error:', insertError);
+          throw insertError;
+        }
+        
+        console.log('Insert successful:', data);
       }
 
       // Update existing visits
       for (const visit of existingVisits) {
         const { id, ...visitData } = visit;
+        console.log('Updating visit with id:', id, 'data:', visitData);
+        
         const { error: updateError } = await supabase
           .from('daily_visits')
           .update(visitData)
           .eq('id', id);
         
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('Update error:', updateError);
+          throw updateError;
+        }
       }
 
       toast({
