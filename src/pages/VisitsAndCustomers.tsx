@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Users, Calendar, ArrowLeft, Search, CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -399,7 +400,7 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
                     <TableHead className="text-center font-bold">الوسيط</TableHead>
                     <TableHead className="text-center font-bold">موظف الاستقبال</TableHead>
                     <TableHead className="text-center font-bold">البنك</TableHead>
-                    <TableHead className="text-center font-bold">لصالح</TableHead>
+                    <TableHead className="text-center font-bold">حالته</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -474,14 +475,14 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
                             placeholder="البنك"
                           />
                         </TableCell>
-                        <TableCell>
-                          <Input
-                            value={visit.notes}
-                            onChange={(e) => updateDailyVisit(index, 'notes', e.target.value)}
-                            className="text-center border-0 bg-transparent"
-                            placeholder="ملاحظات"
-                          />
-                        </TableCell>
+                         <TableCell>
+                           <Textarea
+                             value={visit.notes}
+                             onChange={(e) => updateDailyVisit(index, 'notes', e.target.value)}
+                             className="text-center border-0 bg-transparent min-h-[60px] resize-none"
+                             placeholder="حالة العميل"
+                           />
+                         </TableCell>
                       </TableRow>
                     ))
                   )}
