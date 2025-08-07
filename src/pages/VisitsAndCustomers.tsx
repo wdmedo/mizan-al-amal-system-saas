@@ -5,13 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Users, Calendar, ArrowLeft, Search, CalendarIcon } from 'lucide-react';
+import { Plus, Users, Calendar, ArrowLeft, Search, CalendarIcon, Download, FileImage, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface VisitsAndCustomersProps {
   onBack: () => void;
@@ -348,6 +350,83 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
     }
   };
 
+  const exportFollowUpToPDF = async () => {
+    const element = document.getElementById('customer-followups-table');
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('l', 'mm', 'a4'); // landscape orientation
+      
+      const imgWidth = 297; // A4 width in landscape
+      const pageHeight = 210; // A4 height in landscape
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      pdf.save(`متابعة_العملاء_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+      
+      toast({
+        title: "تم التصدير بنجاح",
+        description: "تم تصدير بيانات المتابعة بصيغة PDF",
+      });
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+      toast({
+        title: "خطأ في التصدير",
+        description: "فشل في تصدير البيانات",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const exportFollowUpToImage = async () => {
+    const element = document.getElementById('customer-followups-table');
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      const link = document.createElement('a');
+      link.download = `متابعة_العملاء_${format(new Date(), 'yyyy-MM-dd')}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+      
+      toast({
+        title: "تم التصدير بنجاح",
+        description: "تم تصدير بيانات المتابعة كصورة",
+      });
+    } catch (error) {
+      console.error('Error exporting to image:', error);
+      toast({
+        title: "خطأ في التصدير",
+        description: "فشل في تصدير البيانات",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" dir="rtl">
       <header className="bg-white/90 backdrop-blur-lg border-b border-blue-100 shadow-sm sticky top-0 z-50">
@@ -560,7 +639,7 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
                   متابعة حالة العملاء خلال أيام الأسبوع
                 </CardDescription>
               </div>
-              <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                 <Button onClick={addCustomerFollowUpRow} size="sm" className="bg-purple-600 hover:bg-purple-700">
                   <Plus className="h-4 w-4 ml-2" />
                   إضافة عميل
@@ -568,12 +647,20 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
                 <Button onClick={saveCustomerFollowUps} variant="outline" size="sm">
                   حفظ البيانات
                 </Button>
+                <Button onClick={exportFollowUpToPDF} variant="outline" size="sm" className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200">
+                  <FileText className="h-4 w-4 ml-2" />
+                  تصدير PDF
+                </Button>
+                <Button onClick={exportFollowUpToImage} variant="outline" size="sm" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200">
+                  <FileImage className="h-4 w-4 ml-2" />
+                  تصدير صورة
+                </Button>
               </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-purple-200 scrollbar-track-gray-100">
-              <div className="min-w-[700px]">
+              <div className="min-w-[700px]" id="customer-followups-table">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-purple-50">
