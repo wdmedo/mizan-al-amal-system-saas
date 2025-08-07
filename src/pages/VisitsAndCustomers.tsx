@@ -608,96 +608,96 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
           <CardContent className="p-0">
             <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-gray-100">
               <div className="min-w-[800px]" id="daily-visits-table">
-                <Table>
+                <Table className="border-2 border-blue-200">
                   <TableHeader>
-                    <TableRow className="bg-blue-50">
-                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[80px]">اليوم</TableHead>
-                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">التاريخ</TableHead>
-                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[120px]">اسم العميل</TableHead>
-                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">جوال العميل</TableHead>
-                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">الوسيط</TableHead>
-                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[120px]">موظف الاستقبال</TableHead>
-                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">البنك</TableHead>
-                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[150px]">حالته</TableHead>
+                    <TableRow className="bg-blue-100 border-b-2 border-blue-300">
+                      <TableHead className="text-center font-bold text-sm md:text-base px-3 py-4 min-w-[90px] border-r border-blue-200 text-blue-900">اليوم</TableHead>
+                      <TableHead className="text-center font-bold text-sm md:text-base px-3 py-4 min-w-[110px] border-r border-blue-200 text-blue-900">التاريخ</TableHead>
+                      <TableHead className="text-center font-bold text-sm md:text-base px-3 py-4 min-w-[140px] border-r border-blue-200 text-blue-900">اسم العميل</TableHead>
+                      <TableHead className="text-center font-bold text-sm md:text-base px-3 py-4 min-w-[120px] border-r border-blue-200 text-blue-900">جوال العميل</TableHead>
+                      <TableHead className="text-center font-bold text-sm md:text-base px-3 py-4 min-w-[110px] border-r border-blue-200 text-blue-900">الوسيط</TableHead>
+                      <TableHead className="text-center font-bold text-sm md:text-base px-3 py-4 min-w-[140px] border-r border-blue-200 text-blue-900">موظف الاستقبال</TableHead>
+                      <TableHead className="text-center font-bold text-sm md:text-base px-3 py-4 min-w-[110px] border-r border-blue-200 text-blue-900">البنك</TableHead>
+                      <TableHead className="text-center font-bold text-sm md:text-base px-3 py-4 min-w-[160px] text-blue-900">حالته</TableHead>
                     </TableRow>
                   </TableHeader>
                 <TableBody>
                   {isLoadingVisits ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
+                    <TableRow className="bg-white">
+                      <TableCell colSpan={8} className="text-center py-12 text-lg font-medium text-gray-600">
                         جاري تحميل البيانات...
                       </TableCell>
                     </TableRow>
                   ) : filteredDailyVisits.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
+                    <TableRow className="bg-white">
+                      <TableCell colSpan={8} className="text-center py-12 text-lg font-medium text-gray-600">
                         لا توجد بيانات للعرض
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredDailyVisits.map((visit, index) => (
-                      <TableRow key={visit.id || index} className="hover:bg-blue-25">
-                         <TableCell className="px-1 md:px-2">
+                      <TableRow key={visit.id || index} className="hover:bg-blue-50 bg-white border-b border-blue-200">
+                         <TableCell className="px-2 md:px-3 py-3 border-r border-blue-200">
                            <Input
                              value={visit.day}
                              onChange={(e) => updateDailyVisit(index, 'day', e.target.value)}
-                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             className="text-center border-2 border-gray-200 bg-gray-50 text-sm md:text-base font-medium h-12 focus:border-blue-400 focus:bg-white"
                              placeholder="اليوم"
                            />
                          </TableCell>
-                         <TableCell className="px-1 md:px-2">
+                         <TableCell className="px-2 md:px-3 py-3 border-r border-blue-200">
                            <Input
                              type="date"
                              value={visit.date}
                              onChange={(e) => updateDailyVisit(index, 'date', e.target.value)}
-                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             className="text-center border-2 border-gray-200 bg-gray-50 text-sm md:text-base font-medium h-12 focus:border-blue-400 focus:bg-white"
                            />
                          </TableCell>
-                         <TableCell className="px-1 md:px-2">
+                         <TableCell className="px-2 md:px-3 py-3 border-r border-blue-200">
                            <Input
                              value={visit.customer_name}
                              onChange={(e) => updateDailyVisit(index, 'customer_name', e.target.value)}
-                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             className="text-center border-2 border-gray-200 bg-gray-50 text-sm md:text-base font-medium h-12 focus:border-blue-400 focus:bg-white"
                              placeholder="اسم العميل"
                            />
                          </TableCell>
-                         <TableCell className="px-1 md:px-2">
+                         <TableCell className="px-2 md:px-3 py-3 border-r border-blue-200">
                            <Input
                              value={visit.customer_phone}
                              onChange={(e) => updateDailyVisit(index, 'customer_phone', e.target.value)}
-                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             className="text-center border-2 border-gray-200 bg-gray-50 text-sm md:text-base font-medium h-12 focus:border-blue-400 focus:bg-white"
                              placeholder="رقم الجوال"
                            />
                          </TableCell>
-                         <TableCell className="px-1 md:px-2">
+                         <TableCell className="px-2 md:px-3 py-3 border-r border-blue-200">
                            <Input
                              value={visit.mediator}
                              onChange={(e) => updateDailyVisit(index, 'mediator', e.target.value)}
-                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             className="text-center border-2 border-gray-200 bg-gray-50 text-sm md:text-base font-medium h-12 focus:border-blue-400 focus:bg-white"
                              placeholder="الوسيط"
                            />
                          </TableCell>
-                         <TableCell className="px-1 md:px-2">
+                         <TableCell className="px-2 md:px-3 py-3 border-r border-blue-200">
                            <Input
                              value={visit.reception_employee}
                              onChange={(e) => updateDailyVisit(index, 'reception_employee', e.target.value)}
-                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             className="text-center border-2 border-gray-200 bg-gray-50 text-sm md:text-base font-medium h-12 focus:border-blue-400 focus:bg-white"
                              placeholder="موظف الاستقبال"
                            />
                          </TableCell>
-                         <TableCell className="px-1 md:px-2">
+                         <TableCell className="px-2 md:px-3 py-3 border-r border-blue-200">
                            <Input
                              value={visit.bank}
                              onChange={(e) => updateDailyVisit(index, 'bank', e.target.value)}
-                             className="text-center border-0 bg-transparent text-xs md:text-sm"
+                             className="text-center border-2 border-gray-200 bg-gray-50 text-sm md:text-base font-medium h-12 focus:border-blue-400 focus:bg-white"
                              placeholder="البنك"
                            />
                          </TableCell>
-                          <TableCell className="px-1 md:px-2">
+                          <TableCell className="px-2 md:px-3 py-3">
                             <Textarea
                               value={visit.notes}
                               onChange={(e) => updateDailyVisit(index, 'notes', e.target.value)}
-                              className="text-center border-0 bg-transparent min-h-[60px] resize-none text-xs md:text-sm"
+                              className="text-center border-2 border-gray-200 bg-gray-50 min-h-[80px] resize-none text-sm md:text-base font-medium focus:border-blue-400 focus:bg-white"
                               placeholder="حالة العميل"
                             />
                           </TableCell>
@@ -746,85 +746,85 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
           <CardContent className="p-0">
             <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-purple-200 scrollbar-track-gray-100">
               <div className="min-w-[700px]" id="customer-followups-table">
-                <Table>
+                <Table className="border-2 border-purple-200">
                   <TableHeader>
-                    <TableRow className="bg-purple-50">
-                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[120px]">الاسم</TableHead>
-                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">الأحد</TableHead>
-                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">الاثنين</TableHead>
-                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">الثلاثاء</TableHead>
-                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">الأربعاء</TableHead>
-                      <TableHead className="text-center font-bold text-xs md:text-sm px-2 py-3 min-w-[100px]">الخميس</TableHead>
+                    <TableRow className="bg-purple-100 border-b-2 border-purple-300">
+                      <TableHead className="text-center font-bold text-sm md:text-base px-3 py-4 min-w-[140px] border-r border-purple-200 text-purple-900">اسم العميل</TableHead>
+                      <TableHead className="text-center font-bold text-sm md:text-base px-3 py-4 min-w-[120px] border-r border-purple-200 text-purple-900">الأحد</TableHead>
+                      <TableHead className="text-center font-bold text-sm md:text-base px-3 py-4 min-w-[120px] border-r border-purple-200 text-purple-900">الاثنين</TableHead>
+                      <TableHead className="text-center font-bold text-sm md:text-base px-3 py-4 min-w-[120px] border-r border-purple-200 text-purple-900">الثلاثاء</TableHead>
+                      <TableHead className="text-center font-bold text-sm md:text-base px-3 py-4 min-w-[120px] border-r border-purple-200 text-purple-900">الأربعاء</TableHead>
+                      <TableHead className="text-center font-bold text-sm md:text-base px-3 py-4 min-w-[120px] text-purple-900">الخميس</TableHead>
                     </TableRow>
                   </TableHeader>
-                <TableBody>
-                  {isLoadingFollowUps ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">
-                        جاري تحميل البيانات...
-                      </TableCell>
-                    </TableRow>
-                  ) : filteredCustomerFollowUps.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">
-                        لا توجد بيانات للعرض
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredCustomerFollowUps.map((followUp, index) => (
-                      <TableRow key={followUp.id || index} className="hover:bg-purple-25">
-                         <TableCell className="px-1 md:px-2">
-                           <Input
-                             value={followUp.customer_name}
-                             onChange={(e) => updateCustomerFollowUp(index, 'customer_name', e.target.value)}
-                             className="text-center border-0 bg-transparent font-medium text-xs md:text-sm"
-                             placeholder="اسم العميل"
-                           />
-                         </TableCell>
-                         <TableCell className="px-1 md:px-2">
-                           <Input
-                             value={followUp.sunday_status}
-                             onChange={(e) => updateCustomerFollowUp(index, 'sunday_status', e.target.value)}
-                             className="text-center border-0 bg-transparent text-xs md:text-sm"
-                             placeholder="حالة الأحد"
-                           />
-                         </TableCell>
-                         <TableCell className="px-1 md:px-2">
-                           <Input
-                             value={followUp.monday_status}
-                             onChange={(e) => updateCustomerFollowUp(index, 'monday_status', e.target.value)}
-                             className="text-center border-0 bg-transparent text-xs md:text-sm"
-                             placeholder="حالة الاثنين"
-                           />
-                         </TableCell>
-                         <TableCell className="px-1 md:px-2">
-                           <Input
-                             value={followUp.tuesday_status}
-                             onChange={(e) => updateCustomerFollowUp(index, 'tuesday_status', e.target.value)}
-                             className="text-center border-0 bg-transparent text-xs md:text-sm"
-                             placeholder="حالة الثلاثاء"
-                           />
-                         </TableCell>
-                         <TableCell className="px-1 md:px-2">
-                           <Input
-                             value={followUp.wednesday_status}
-                             onChange={(e) => updateCustomerFollowUp(index, 'wednesday_status', e.target.value)}
-                             className="text-center border-0 bg-transparent text-xs md:text-sm"
-                             placeholder="حالة الأربعاء"
-                           />
-                         </TableCell>
-                         <TableCell className="px-1 md:px-2">
-                           <Input
-                             value={followUp.thursday_status}
-                             onChange={(e) => updateCustomerFollowUp(index, 'thursday_status', e.target.value)}
-                             className="text-center border-0 bg-transparent text-xs md:text-sm"
-                             placeholder="حالة الخميس"
-                           />
-                         </TableCell>
+                  <TableBody>
+                    {isLoadingFollowUps ? (
+                      <TableRow className="bg-white">
+                        <TableCell colSpan={6} className="text-center py-12 text-lg font-medium text-gray-600">
+                          جاري تحميل البيانات...
+                        </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                 </TableBody>
+                    ) : filteredCustomerFollowUps.length === 0 ? (
+                      <TableRow className="bg-white">
+                        <TableCell colSpan={6} className="text-center py-12 text-lg font-medium text-gray-600">
+                          لا توجد بيانات للعرض
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredCustomerFollowUps.map((followUp, index) => (
+                        <TableRow key={followUp.id || index} className="hover:bg-purple-50 bg-white border-b border-purple-200">
+                          <TableCell className="px-2 md:px-3 py-3 border-r border-purple-200">
+                            <Input
+                              value={followUp.customer_name}
+                              onChange={(e) => updateCustomerFollowUp(index, 'customer_name', e.target.value)}
+                              className="text-center border-2 border-gray-200 bg-gray-50 text-sm md:text-base font-medium h-12 focus:border-purple-400 focus:bg-white"
+                              placeholder="اسم العميل"
+                            />
+                          </TableCell>
+                          <TableCell className="px-2 md:px-3 py-3 border-r border-purple-200">
+                            <Textarea
+                              value={followUp.sunday_status}
+                              onChange={(e) => updateCustomerFollowUp(index, 'sunday_status', e.target.value)}
+                              className="text-center border-2 border-gray-200 bg-gray-50 min-h-[80px] resize-none text-sm md:text-base font-medium focus:border-purple-400 focus:bg-white"
+                              placeholder="حالة الأحد"
+                            />
+                          </TableCell>
+                          <TableCell className="px-2 md:px-3 py-3 border-r border-purple-200">
+                            <Textarea
+                              value={followUp.monday_status}
+                              onChange={(e) => updateCustomerFollowUp(index, 'monday_status', e.target.value)}
+                              className="text-center border-2 border-gray-200 bg-gray-50 min-h-[80px] resize-none text-sm md:text-base font-medium focus:border-purple-400 focus:bg-white"
+                              placeholder="حالة الاثنين"
+                            />
+                          </TableCell>
+                          <TableCell className="px-2 md:px-3 py-3 border-r border-purple-200">
+                            <Textarea
+                              value={followUp.tuesday_status}
+                              onChange={(e) => updateCustomerFollowUp(index, 'tuesday_status', e.target.value)}
+                              className="text-center border-2 border-gray-200 bg-gray-50 min-h-[80px] resize-none text-sm md:text-base font-medium focus:border-purple-400 focus:bg-white"
+                              placeholder="حالة الثلاثاء"
+                            />
+                          </TableCell>
+                          <TableCell className="px-2 md:px-3 py-3 border-r border-purple-200">
+                            <Textarea
+                              value={followUp.wednesday_status}
+                              onChange={(e) => updateCustomerFollowUp(index, 'wednesday_status', e.target.value)}
+                              className="text-center border-2 border-gray-200 bg-gray-50 min-h-[80px] resize-none text-sm md:text-base font-medium focus:border-purple-400 focus:bg-white"
+                              placeholder="حالة الأربعاء"
+                            />
+                          </TableCell>
+                          <TableCell className="px-2 md:px-3 py-3">
+                            <Textarea
+                              value={followUp.thursday_status}
+                              onChange={(e) => updateCustomerFollowUp(index, 'thursday_status', e.target.value)}
+                              className="text-center border-2 border-gray-200 bg-gray-50 min-h-[80px] resize-none text-sm md:text-base font-medium focus:border-purple-400 focus:bg-white"
+                              placeholder="حالة الخميس"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
                 </Table>
               </div>
             </div>
