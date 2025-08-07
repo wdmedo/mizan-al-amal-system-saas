@@ -350,6 +350,83 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
     }
   };
 
+  const exportDailyVisitsToPDF = async () => {
+    const element = document.getElementById('daily-visits-table');
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('l', 'mm', 'a4'); // landscape orientation
+      
+      const imgWidth = 297; // A4 width in landscape
+      const pageHeight = 210; // A4 height in landscape
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      pdf.save(`الكشف_اليومي_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+      
+      toast({
+        title: "تم التصدير بنجاح",
+        description: "تم تصدير الكشف اليومي بصيغة PDF",
+      });
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+      toast({
+        title: "خطأ في التصدير",
+        description: "فشل في تصدير البيانات",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const exportDailyVisitsToImage = async () => {
+    const element = document.getElementById('daily-visits-table');
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      const link = document.createElement('a');
+      link.download = `الكشف_اليومي_${format(new Date(), 'yyyy-MM-dd')}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+      
+      toast({
+        title: "تم التصدير بنجاح",
+        description: "تم تصدير الكشف اليومي كصورة",
+      });
+    } catch (error) {
+      console.error('Error exporting to image:', error);
+      toast({
+        title: "خطأ في التصدير",
+        description: "فشل في تصدير البيانات",
+        variant: "destructive",
+      });
+    }
+  };
+
   const exportFollowUpToPDF = async () => {
     const element = document.getElementById('customer-followups-table');
     if (!element) return;
@@ -509,7 +586,7 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
                   تسجيل ومتابعة زيارات العملاء اليومية
                 </CardDescription>
               </div>
-              <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                 <Button onClick={addDailyVisitRow} size="sm" className="bg-blue-600 hover:bg-blue-700">
                   <Plus className="h-4 w-4 ml-2" />
                   إضافة صف
@@ -517,12 +594,20 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
                 <Button onClick={saveDailyVisits} variant="outline" size="sm">
                   حفظ البيانات
                 </Button>
+                <Button onClick={exportDailyVisitsToPDF} variant="outline" size="sm" className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200">
+                  <FileText className="h-4 w-4 ml-2" />
+                  تصدير PDF
+                </Button>
+                <Button onClick={exportDailyVisitsToImage} variant="outline" size="sm" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200">
+                  <FileImage className="h-4 w-4 ml-2" />
+                  تصدير صورة
+                </Button>
               </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-gray-100">
-              <div className="min-w-[800px]">
+              <div className="min-w-[800px]" id="daily-visits-table">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-blue-50">
