@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2, FileText, TrendingUp, TrendingDown } from 'lucide-react';
 import { useAccountingData } from '@/hooks/useAccountingData';
+import PrintButton from '@/components/PrintButton';
 
 const AccountsSection = () => {
   const { data, addAccount, deleteAccount } = useAccountingData();
@@ -45,11 +46,14 @@ const AccountsSection = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="accounts-content">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent mb-2">
-          ملخص الحسابات
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+            ملخص الحسابات
+          </h2>
+          <PrintButton printableElementId="accounts-content" />
+        </div>
         <p className="text-gray-600">إدارة الحسابات المالية والأرصدة</p>
       </div>
 

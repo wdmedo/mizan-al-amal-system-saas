@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, TrendingDown } from 'lucide-react';
 import { useAccountingData } from '@/hooks/useAccountingData';
+import PrintButton from '@/components/PrintButton';
 
 const ExpensesSection = () => {
   const { data, addExpense, deleteExpense } = useAccountingData();
@@ -42,11 +43,14 @@ const ExpensesSection = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="expenses-content">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-2">
-          إدارة المصروفات
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
+            إدارة المصروفات
+          </h2>
+          <PrintButton printableElementId="expenses-content" />
+        </div>
         <p className="text-gray-600">تتبع وإدارة جميع مصروفات الشركة</p>
       </div>
 

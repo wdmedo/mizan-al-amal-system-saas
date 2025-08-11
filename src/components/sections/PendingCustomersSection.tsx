@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, Trash2, Users, CreditCard } from 'lucide-react';
 import { useAccountingData } from '@/hooks/useAccountingData';
 import { PendingCustomer, Payment } from '@/types/accounting';
+import PrintButton from '@/components/PrintButton';
 
 const PendingCustomersSection = () => {
   const { data, addPendingCustomer, deletePendingCustomer, addPayment, deletePayment } = useAccountingData();
@@ -63,11 +64,14 @@ const PendingCustomersSection = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="pending-customers-content">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent mb-2">
-          العملاء المعلقين
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+            العملاء المعلقين
+          </h2>
+          <PrintButton printableElementId="pending-customers-content" />
+        </div>
         <p className="text-gray-600">إدارة العملاء ومدفوعاتهم المعلقة</p>
       </div>
 

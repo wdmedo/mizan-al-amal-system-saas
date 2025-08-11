@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, Trash2, UserCheck, Calculator } from 'lucide-react';
 import { useAccountingData } from '@/hooks/useAccountingData';
 import { CompletedCustomer } from '@/types/accounting';
+import PrintButton from '@/components/PrintButton';
 
 const CompletedCustomersSection = () => {
   const { data, addCompletedCustomer, deleteCompletedCustomer } = useAccountingData();
@@ -75,11 +76,14 @@ const CompletedCustomersSection = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="completed-customers-content">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
-          العملاء الخالصين
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+            العملاء الخالصين
+          </h2>
+          <PrintButton printableElementId="completed-customers-content" />
+        </div>
         <p className="text-gray-600">إدارة العملاء المكتملين وحساب الأرباح النهائية</p>
         <p className="text-sm text-gray-500 mt-2">
           معادلة الحساب: صافي الربح = الفائدة الثابتة - فائدة الوسيط - فرق السلعة
