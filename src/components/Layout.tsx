@@ -91,7 +91,7 @@ const Layout = ({ children, activeSection, onSectionChange }: LayoutProps) => {
             </Button>
 
             <h1 className="text-xs xs:text-sm sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight truncate">
-              نظام المحاسبة الشامل لمؤسسة تمام السداد
+              نظام المحاسبة م/محمد صبري صالح 0563769651
             </h1>
           </div>
           

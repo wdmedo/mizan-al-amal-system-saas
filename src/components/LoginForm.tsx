@@ -55,7 +55,7 @@ const LoginForm = ({ onLogin, onSolverAccess, onVisitsAccess }: LoginFormProps) 
             تسجيل الدخول
           </CardTitle>
           <CardDescription className="text-gray-600">
-            نظام المحاسبة الشامل لمؤسسة تمام السداد
+            نظام المحاسبة م/محمد صبري صالح 0563769651
           </CardDescription>
         </CardHeader>
         <CardContent>
