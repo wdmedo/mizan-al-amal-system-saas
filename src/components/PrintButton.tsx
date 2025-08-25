@@ -48,16 +48,44 @@ const PrintButton = ({ printableElementId, className, showImageExport = true }: 
       const element = document.getElementById(printableElementId);
       if (element) {
         try {
+          // Wait for fonts to load
+          await document.fonts.ready;
+          
           const canvas = await html2canvas(element, {
-            scale: 2,
+            scale: 3,
             useCORS: true,
             allowTaint: true,
-            backgroundColor: '#ffffff'
+            backgroundColor: '#ffffff',
+            scrollX: 0,
+            scrollY: 0,
+            width: element.scrollWidth,
+            height: element.scrollHeight,
+            foreignObjectRendering: false,
+            logging: false,
+            onclone: (clonedDoc) => {
+              // Ensure RTL direction is preserved
+              const clonedElement = clonedDoc.getElementById(printableElementId);
+              if (clonedElement) {
+                clonedElement.style.direction = 'rtl';
+                clonedElement.style.fontFamily = 'Arial, sans-serif';
+                clonedElement.style.fontSize = '14px';
+                clonedElement.style.lineHeight = '1.5';
+                
+                // Fix Arabic text rendering
+                const allElements = clonedElement.querySelectorAll('*');
+                allElements.forEach((el: any) => {
+                  el.style.fontFamily = 'Arial, sans-serif';
+                  el.style.direction = 'rtl';
+                  el.style.unicodeBidi = 'bidi-override';
+                  el.style.textAlign = 'right';
+                });
+              }
+            }
           });
           
           const link = document.createElement('a');
           link.download = `تقرير-${new Date().toLocaleDateString('ar-SA')}.png`;
-          link.href = canvas.toDataURL();
+          link.href = canvas.toDataURL('image/png', 1.0);
           link.click();
         } catch (error) {
           console.error('خطأ في تصدير الصورة:', error);
