@@ -18,13 +18,35 @@ const PrintButton = ({ printableElementId, className, showImageExport = true }: 
         const printWindow = window.open('', '_blank');
         if (printWindow) {
           printWindow.document.write(`
-            <html>
+            <html dir="rtl" lang="ar">
               <head>
                 <title>طباعة</title>
+                <meta charset="UTF-8">
                 <style>
-                  body { font-family: Arial, sans-serif; margin: 20px; direction: rtl; }
-                  .print-content { width: 100%; }
-                  @media print { body { margin: 0; } }
+                  body { 
+                    font-family: "Segoe UI", Tahoma, Arial, "Noto Sans Arabic", sans-serif; 
+                    margin: 20px; 
+                    direction: rtl; 
+                    line-height: 1.6;
+                    letter-spacing: 0.5px;
+                    text-rendering: optimizeLegibility;
+                  }
+                  .print-content { 
+                    width: 100%; 
+                    direction: rtl;
+                  }
+                  * {
+                    font-family: "Segoe UI", Tahoma, Arial, "Noto Sans Arabic", sans-serif !important;
+                    direction: rtl;
+                  }
+                  table td, table th {
+                    text-align: center;
+                    vertical-align: middle;
+                  }
+                  @media print { 
+                    body { margin: 0; } 
+                    * { -webkit-print-color-adjust: exact; }
+                  }
                 </style>
               </head>
               <body>
@@ -48,11 +70,14 @@ const PrintButton = ({ printableElementId, className, showImageExport = true }: 
       const element = document.getElementById(printableElementId);
       if (element) {
         try {
-          // Wait for fonts to load
+          // Wait for fonts to load properly
           await document.fonts.ready;
           
+          // Add a small delay to ensure complete font loading
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
           const canvas = await html2canvas(element, {
-            scale: 3,
+            scale: 2,
             useCORS: true,
             allowTaint: true,
             backgroundColor: '#ffffff',
@@ -60,24 +85,47 @@ const PrintButton = ({ printableElementId, className, showImageExport = true }: 
             scrollY: 0,
             width: element.scrollWidth,
             height: element.scrollHeight,
-            foreignObjectRendering: false,
+            foreignObjectRendering: true,
             logging: false,
             onclone: (clonedDoc) => {
-              // Ensure RTL direction is preserved
+              // Ensure proper Arabic text rendering
               const clonedElement = clonedDoc.getElementById(printableElementId);
               if (clonedElement) {
-                clonedElement.style.direction = 'rtl';
-                clonedElement.style.fontFamily = 'Arial, sans-serif';
-                clonedElement.style.fontSize = '14px';
-                clonedElement.style.lineHeight = '1.5';
+                // Set document-level styles for better Arabic support
+                clonedDoc.documentElement.style.direction = 'rtl';
+                clonedDoc.documentElement.setAttribute('lang', 'ar');
                 
-                // Fix Arabic text rendering
-                const allElements = clonedElement.querySelectorAll('*');
-                allElements.forEach((el: any) => {
-                  el.style.fontFamily = 'Arial, sans-serif';
+                // Apply Arabic-optimized styles to the main element
+                clonedElement.style.direction = 'rtl';
+                clonedElement.style.fontFamily = '"Segoe UI", Tahoma, Arial, "Noto Sans Arabic", sans-serif';
+                clonedElement.style.fontSize = '16px';
+                clonedElement.style.lineHeight = '1.6';
+                clonedElement.style.letterSpacing = '0.5px';
+                
+                // Apply proper styles to all text elements
+                const textElements = clonedElement.querySelectorAll('*');
+                textElements.forEach((el: any) => {
+                  const computedStyle = window.getComputedStyle(el);
+                  
+                  // Only apply RTL styles to elements with Arabic content or that should be RTL
+                  el.style.fontFamily = '"Segoe UI", Tahoma, Arial, "Noto Sans Arabic", sans-serif';
                   el.style.direction = 'rtl';
-                  el.style.unicodeBidi = 'bidi-override';
-                  el.style.textAlign = 'right';
+                  el.style.unicodeBidi = 'normal';
+                  
+                  // Preserve original text alignment unless it's explicitly left-aligned
+                  if (computedStyle.textAlign !== 'left') {
+                    el.style.textAlign = 'right';
+                  }
+                  
+                  // Improve number and mixed content rendering
+                  el.style.fontFeatureSettings = '"kern" 1, "liga" 1';
+                  el.style.textRendering = 'optimizeLegibility';
+                  
+                  // Handle tables and specific elements differently
+                  if (el.tagName === 'TD' || el.tagName === 'TH') {
+                    el.style.textAlign = 'center';
+                    el.style.verticalAlign = 'middle';
+                  }
                 });
               }
             }
