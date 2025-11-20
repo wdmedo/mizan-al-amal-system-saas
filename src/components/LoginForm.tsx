@@ -25,9 +25,9 @@ const LoginForm = ({ onLogin, onSolverAccess, onVisitsAccess }: LoginFormProps) 
 
     // محاكاة تأخير تسجيل الدخول
     setTimeout(() => {
-      if (password === '033112233') {
+      if (username === 'admin' && password === '0563769651Aa') {
         localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('username', username || 'مستخدم');
+        localStorage.setItem('username', username);
         onLogin(true);
         toast({
           title: "تم تسجيل الدخول بنجاح",
@@ -36,7 +36,7 @@ const LoginForm = ({ onLogin, onSolverAccess, onVisitsAccess }: LoginFormProps) 
       } else {
         toast({
           title: "خطأ في تسجيل الدخول",
-          description: "كلمة المرور غير صحيحة",
+          description: "اسم المستخدم أو كلمة المرور غير صحيحة",
           variant: "destructive",
         });
       }
