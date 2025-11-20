@@ -22,16 +22,16 @@ const SolverLoginForm = ({ onLogin, onBackToMain }: SolverLoginFormProps) => {
     setIsLoading(true);
 
     setTimeout(() => {
-      if (password === 'solver123') {
-        onLogin(username || 'مستخدم الحاسبة');
+      if (username === 'admin' && password === '0563769651Aa') {
+        onLogin(username);
         toast({
           title: "تم الدخول بنجاح",
           description: "مرحباً بك في حاسبة الصيغ المالية",
         });
       } else {
         toast({
-          title: "خطأ في كلمة المرور",
-          description: "كلمة المرور غير صحيحة للحاسبة المالية",
+          title: "خطأ في تسجيل الدخول",
+          description: "اسم المستخدم أو كلمة المرور غير صحيحة",
           variant: "destructive",
         });
       }
