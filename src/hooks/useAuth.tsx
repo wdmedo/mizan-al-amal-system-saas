@@ -1,11 +1,16 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import type { Session, User } from '@supabase/supabase-js';
 
 interface AuthContextType {
   isLoggedIn: boolean;
   username: string;
+  user: User | null;
+  session: Session | null;
+  loading: boolean;
   login: (isLoggedIn: boolean) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -15,37 +20,48 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // التحقق من حالة تسجيل الدخول المحفوظة
-    const savedLoginState = localStorage.getItem('isLoggedIn');
-    const savedUsername = localStorage.getItem('username');
-    
-    if (savedLoginState === 'true') {
-      setIsLoggedIn(true);
-      setUsername(savedUsername || 'مستخدم');
-    }
+    // Set up listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+      setLoading(false);
+    });
+
+    // THEN hydrate existing session
+    supabase.auth.getSession().then(({ data: { session: existing } }) => {
+      setSession(existing);
+      setUser(existing?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = (loggedIn: boolean) => {
-    setIsLoggedIn(loggedIn);
-    if (loggedIn) {
-      const savedUsername = localStorage.getItem('username');
-      setUsername(savedUsername || 'مستخدم');
-    }
+  const login = (_loggedIn: boolean) => {
+    // Kept for backward compatibility; auth state is driven by Supabase now.
   };
 
-  const logout = () => {
-    setIsLoggedIn(false);
-    setUsername('');
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('username');
+  const logout = async () => {
+    await supabase.auth.signOut();
   };
+
+  const username = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, username, login, logout }}>
+    <AuthContext.Provider value={{
+      isLoggedIn: !!session,
+      username,
+      user,
+      session,
+      loading,
+      login,
+      logout,
+    }}>
       {children}
     </AuthContext.Provider>
   );
