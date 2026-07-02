@@ -21,7 +21,7 @@ const Index = () => {
   const [showSolverLogin, setShowSolverLogin] = useState(false);
   const [showVisitsPage, setShowVisitsPage] = useState(false);
   const [solverUser, setSolverUser] = useState<string | null>(null);
-  const { isLoggedIn, login } = useAuth();
+  const { isLoggedIn, loading } = useAuth();
 
   // إذا كان المستخدم في الحاسبة المالية
   if (solverUser) {
@@ -69,11 +69,18 @@ const Index = () => {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900" dir="rtl">
+        <div className="w-10 h-10 border-4 border-white/20 border-t-cyan-400 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   // إذا لم يكن المستخدم مسجل الدخول، عرض نموذج تسجيل الدخول
   if (!isLoggedIn) {
     return (
       <LoginForm 
-        onLogin={login} 
         onSolverAccess={() => setShowSolverLogin(true)}
         onVisitsAccess={() => setShowVisitsPage(true)}
       />
