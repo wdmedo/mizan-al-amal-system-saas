@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, User, Calculator } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Lock, Mail, Calculator, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LoginFormProps {
   onLogin: (isLoggedIn: boolean) => void;
@@ -13,35 +15,54 @@ interface LoginFormProps {
   onVisitsAccess: () => void;
 }
 
-const LoginForm = ({ onLogin, onSolverAccess, onVisitsAccess }: LoginFormProps) => {
-  const [username, setUsername] = useState('');
+const LoginForm = ({ onSolverAccess, onVisitsAccess }: LoginFormProps) => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setIsLoading(false);
+    if (error) {
+      toast({
+        title: 'فشل تسجيل الدخول',
+        description: error.message === 'Invalid login credentials'
+          ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+          : error.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+    toast({ title: 'تم تسجيل الدخول بنجاح', description: 'مرحباً بك في نظام المحاسبة الشامل' });
+  };
 
-    // محاكاة تأخير تسجيل الدخول
-    setTimeout(() => {
-      if (username === 'admin' && password === '0563769651Aa') {
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('username', username);
-        onLogin(true);
-        toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: "مرحباً بك في نظام المحاسبة الشامل",
-        });
-      } else {
-        toast({
-          title: "خطأ في تسجيل الدخول",
-          description: "اسم المستخدم أو كلمة المرور غير صحيحة",
-          variant: "destructive",
-        });
-      }
-      setIsLoading(false);
-    }, 1000);
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: { full_name: fullName },
+      },
+    });
+    setIsLoading(false);
+    if (error) {
+      toast({
+        title: 'فشل إنشاء الحساب',
+        description: error.message === 'User already registered'
+          ? 'هذا البريد مسجل بالفعل، سجّل الدخول مباشرة'
+          : error.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+    toast({ title: 'تم إنشاء الحساب', description: 'يمكنك الآن تسجيل الدخول' });
   };
 
   return (
