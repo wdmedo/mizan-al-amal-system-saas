@@ -95,50 +95,75 @@ const LoginForm = ({ onSolverAccess, onVisitsAccess }: LoginFormProps) => {
           </div>
         </CardHeader>
         <CardContent className="pt-2 sm:pt-4 px-4 sm:px-6">
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="username" className="text-gray-200 flex items-center gap-2 text-xs sm:text-sm font-medium">
-                <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-cyan-400" />
-                اسم المستخدم
-              </Label>
-              <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="أدخل اسم المستخدم"
-                className="text-right bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-cyan-400 focus:ring-cyan-400/20 h-11 sm:h-12 text-base"
-                required
-              />
-            </div>
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="password" className="text-gray-200 flex items-center gap-2 text-xs sm:text-sm font-medium">
-                <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
-                كلمة المرور
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="أدخل كلمة المرور"
-                className="text-right bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-purple-400 focus:ring-purple-400/20 h-11 sm:h-12 text-base"
-                required
-              />
-            </div>
-            <Button 
-              type="submit" 
-              className="w-full h-11 sm:h-12 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:from-cyan-600 hover:via-purple-600 hover:to-pink-600 text-white font-semibold text-base sm:text-lg shadow-lg shadow-purple-500/25 transition-all duration-300 hover:shadow-purple-500/40 active:scale-[0.98]"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  جاري تسجيل الدخول...
-                </span>
-              ) : 'تسجيل الدخول'}
-            </Button>
-          </form>
+          <Tabs defaultValue="signin" className="w-full">
+            <TabsList className="grid grid-cols-2 w-full bg-white/5 border border-white/10 mb-4">
+              <TabsTrigger value="signin" className="data-[state=active]:bg-white/10 text-gray-200">دخول</TabsTrigger>
+              <TabsTrigger value="signup" className="data-[state=active]:bg-white/10 text-gray-200">حساب جديد</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="signin">
+              <form onSubmit={handleSignIn} className="space-y-4 sm:space-y-5">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="email" className="text-gray-200 flex items-center gap-2 text-xs sm:text-sm font-medium">
+                    <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-cyan-400" />
+                    البريد الإلكتروني
+                  </Label>
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com" required dir="ltr"
+                    className="text-left bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-cyan-400 focus:ring-cyan-400/20 h-11 sm:h-12 text-base" />
+                </div>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="password" className="text-gray-200 flex items-center gap-2 text-xs sm:text-sm font-medium">
+                    <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
+                    كلمة المرور
+                  </Label>
+                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••" required dir="ltr"
+                    className="text-left bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-purple-400 focus:ring-purple-400/20 h-11 sm:h-12 text-base" />
+                </div>
+                <Button type="submit" disabled={isLoading}
+                  className="w-full h-11 sm:h-12 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:from-cyan-600 hover:via-purple-600 hover:to-pink-600 text-white font-semibold text-base sm:text-lg shadow-lg shadow-purple-500/25 transition-all duration-300 hover:shadow-purple-500/40 active:scale-[0.98]">
+                  {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+                </Button>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="signup">
+              <form onSubmit={handleSignUp} className="space-y-4 sm:space-y-5">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="fullName" className="text-gray-200 flex items-center gap-2 text-xs sm:text-sm font-medium">
+                    <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-cyan-400" />
+                    الاسم الكامل
+                  </Label>
+                  <Input id="fullName" type="text" value={fullName} onChange={(e) => setFullName(e.target.value)}
+                    placeholder="اسمك الكامل" required
+                    className="text-right bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-cyan-400 focus:ring-cyan-400/20 h-11 sm:h-12 text-base" />
+                </div>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="signup-email" className="text-gray-200 flex items-center gap-2 text-xs sm:text-sm font-medium">
+                    <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-cyan-400" />
+                    البريد الإلكتروني
+                  </Label>
+                  <Input id="signup-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com" required dir="ltr"
+                    className="text-left bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-cyan-400 focus:ring-cyan-400/20 h-11 sm:h-12 text-base" />
+                </div>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="signup-password" className="text-gray-200 flex items-center gap-2 text-xs sm:text-sm font-medium">
+                    <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
+                    كلمة المرور (6 أحرف على الأقل)
+                  </Label>
+                  <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••" required minLength={6} dir="ltr"
+                    className="text-left bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-purple-400 focus:ring-purple-400/20 h-11 sm:h-12 text-base" />
+                </div>
+                <Button type="submit" disabled={isLoading}
+                  className="w-full h-11 sm:h-12 bg-gradient-to-r from-emerald-500 via-cyan-500 to-purple-500 hover:from-emerald-600 hover:via-cyan-600 hover:to-purple-600 text-white font-semibold text-base sm:text-lg shadow-lg shadow-cyan-500/25 transition-all duration-300 active:scale-[0.98]">
+                  {isLoading ? 'جاري الإنشاء...' : 'إنشاء حساب'}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
           
           <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-white/10 space-y-2.5 sm:space-y-3">
             <Button 
