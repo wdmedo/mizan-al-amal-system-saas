@@ -6,6 +6,7 @@ import type { Session, User } from '@supabase/supabase-js';
 interface AuthContextType {
   isLoggedIn: boolean;
   username: string;
+  companyName: string;
   user: User | null;
   session: Session | null;
   loading: boolean;
@@ -51,11 +52,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const username = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
+  const companyName = user?.user_metadata?.company_name || '';
 
   return (
     <AuthContext.Provider value={{
       isLoggedIn: !!session,
       username,
+      companyName,
       user,
       session,
       loading,

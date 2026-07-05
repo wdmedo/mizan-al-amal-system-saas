@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { createOrgQuery, orgInsert } from '@/services/tenant';
 import { 
   Employee, 
   Coverage, 
@@ -12,13 +12,11 @@ import {
 } from '@/types/accounting';
 
 export const saveExpense = async (expense: Omit<Expense, 'id'>) => {
-  const { data, error } = await supabase
-    .from('expenses')
-    .insert([{
-      description: expense.description,
-      amount: expense.amount,
-      date: expense.date
-    }])
+  const { data, error } = await orgInsert('expenses', [{
+    description: expense.description,
+    amount: expense.amount,
+    date: expense.date
+  }])
     .select()
     .single();
 
@@ -31,8 +29,8 @@ export const saveExpense = async (expense: Omit<Expense, 'id'>) => {
 };
 
 export const getExpenses = async (): Promise<Expense[]> => {
-  const { data, error } = await supabase
-    .from('expenses')
+  const org = await createOrgQuery<Expense>('expenses');
+  const { data, error } = await org
     .select('*')
     .order('created_at', { ascending: false });
 
@@ -46,8 +44,8 @@ export const getExpenses = async (): Promise<Expense[]> => {
 };
 
 export const getPendingCustomers = async (): Promise<PendingCustomer[]> => {
-  const { data, error } = await supabase
-    .from('pending_customers')
+  const org = await createOrgQuery<PendingCustomer>('pending_customers');
+  const { data, error } = await org
     .select(`
       *,
       payments (*)
@@ -69,8 +67,8 @@ export const getPendingCustomers = async (): Promise<PendingCustomer[]> => {
 };
 
 export const getCompletedCustomers = async (): Promise<CompletedCustomer[]> => {
-  const { data, error } = await supabase
-    .from('completed_customers')
+  const org = await createOrgQuery<CompletedCustomer>('completed_customers');
+  const { data, error } = await org
     .select('*')
     .order('created_at', { ascending: false });
 
@@ -89,9 +87,7 @@ export const getCompletedCustomers = async (): Promise<CompletedCustomer[]> => {
 };
 
 export const saveEmployee = async (employee: Omit<Employee, 'id'>) => {
-  const { data, error } = await supabase
-    .from('employees')
-    .insert([{
+  const { data, error } = await orgInsert('employees', [{
       name: employee.name,
       salary: employee.salary,
       advances: employee.advances || 0
@@ -104,8 +100,8 @@ export const saveEmployee = async (employee: Omit<Employee, 'id'>) => {
 };
 
 export const getEmployees = async (): Promise<Employee[]> => {
-  const { data, error } = await supabase
-    .from('employees')
+  const org = await createOrgQuery<Employee>('employees');
+  const { data, error } = await org
     .select('*')
     .order('created_at', { ascending: false });
 
@@ -119,9 +115,7 @@ export const getEmployees = async (): Promise<Employee[]> => {
 };
 
 export const saveCoverage = async (coverage: Omit<Coverage, 'id'>) => {
-  const { data, error } = await supabase
-    .from('coverages')
-    .insert([{
+  const { data, error } = await orgInsert('coverages', [{
       amount: coverage.amount,
       received_from: coverage.receivedFrom,
       received_by: coverage.receivedBy,
@@ -139,8 +133,8 @@ export const saveCoverage = async (coverage: Omit<Coverage, 'id'>) => {
 };
 
 export const getCoverages = async (): Promise<Coverage[]> => {
-  const { data, error } = await supabase
-    .from('coverages')
+  const org = await createOrgQuery<Coverage>('coverages');
+  const { data, error } = await org
     .select('*')
     .order('created_at', { ascending: false });
 
@@ -157,8 +151,8 @@ export const getCoverages = async (): Promise<Coverage[]> => {
 // دالة مساعدة لتحديث رصيد البنك الرئيسي
 const updateBankBalance = async (amount: number, description: string) => {
   // البحث عن حساب البنك الرئيسي أو إنشاؤه إذا لم يكن موجوداً
-  let { data: bankAccount, error: getBankError } = await supabase
-    .from('accounts')
+  const org = await createOrgQuery<Account>('accounts');
+  let { data: bankAccount, error: getBankError } = await org
     .select('*')
     .eq('name', 'حساب البنك الرئيسي')
     .single();
@@ -169,12 +163,10 @@ const updateBankBalance = async (amount: number, description: string) => {
 
   if (!bankAccount) {
     // إنشاء حساب البنك الرئيسي إذا لم يكن موجوداً
-    const { data: newAccount, error: createError } = await supabase
-      .from('accounts')
-      .insert([{
-        name: 'حساب البنك الرئيسي',
-        balance: amount
-      }])
+    const { data: newAccount, error: createError } = await orgInsert('accounts', [{
+      name: 'حساب البنك الرئيسي',
+      balance: amount
+    }])
       .select()
       .single();
 
@@ -183,8 +175,7 @@ const updateBankBalance = async (amount: number, description: string) => {
   } else {
     // تحديث الرصيد الحالي
     const newBalance = bankAccount.balance + amount;
-    const { error: updateError } = await supabase
-      .from('accounts')
+const { error: updateError } = await org
       .update({ balance: newBalance })
       .eq('id', bankAccount.id);
 
@@ -197,9 +188,7 @@ const updateBankBalance = async (amount: number, description: string) => {
 
 export const saveEmployeeTransaction = async (transaction: Omit<EmployeeTransaction, 'id'>) => {
   // Start a transaction to ensure data consistency
-  const { data: transactionData, error: transactionError } = await supabase
-    .from('employee_transactions')
-    .insert([{
+  const { data: transactionData, error: transactionError } = await orgInsert('employee_transactions', [{
       employee_id: transaction.employeeId,
       amount: transaction.amount,
       type: transaction.type,
@@ -212,8 +201,8 @@ export const saveEmployeeTransaction = async (transaction: Omit<EmployeeTransact
   if (transactionError) throw transactionError;
 
   // Get current employee data
-  const { data: employee, error: employeeError } = await supabase
-    .from('employees')
+  const employeeOrg = await createOrgQuery<Employee>('employees');
+  const { data: employee, error: employeeError } = await employeeOrg
     .select('*')
     .eq('id', transaction.employeeId)
     .single();
@@ -247,8 +236,8 @@ export const saveEmployeeTransaction = async (transaction: Omit<EmployeeTransact
   }
 
   // Update employee advances
-  const { error: updateError } = await supabase
-    .from('employees')
+  const employeesOrg = await createOrgQuery<Employee>('employees');
+  const { error: updateError } = await employeesOrg
     .update({ advances: newAdvances })
     .eq('id', transaction.employeeId);
 
@@ -263,8 +252,8 @@ export const saveEmployeeTransaction = async (transaction: Omit<EmployeeTransact
 };
 
 export const getEmployeeTransactions = async (): Promise<EmployeeTransaction[]> => {
-  const { data, error } = await supabase
-    .from('employee_transactions')
+  const org = await createOrgQuery<EmployeeTransaction>('employee_transactions');
+  const { data, error } = await org
     .select(`
       *,
       employees (
@@ -287,9 +276,7 @@ export const getEmployeeTransactions = async (): Promise<EmployeeTransaction[]> 
 
 export const saveCoverageTransaction = async (transaction: Omit<CoverageTransaction, 'id'>) => {
   // Start a transaction to ensure data consistency
-  const { data: transactionData, error: transactionError } = await supabase
-    .from('coverage_transactions')
-    .insert([{
+  const { data: transactionData, error: transactionError } = await orgInsert('coverage_transactions', [{
       coverage_id: transaction.coverageId,
       amount: transaction.amount,
       type: transaction.type,
@@ -302,8 +289,8 @@ export const saveCoverageTransaction = async (transaction: Omit<CoverageTransact
   if (transactionError) throw transactionError;
 
   // Get current coverage data
-  const { data: coverage, error: coverageError } = await supabase
-    .from('coverages')
+  const coverageOrg = await createOrgQuery<Coverage>('coverages');
+  const { data: coverage, error: coverageError } = await coverageOrg
     .select('*')
     .eq('id', transaction.coverageId)
     .single();
@@ -334,8 +321,7 @@ export const saveCoverageTransaction = async (transaction: Omit<CoverageTransact
   }
 
   // Update coverage remaining amount
-  const { error: updateError } = await supabase
-    .from('coverages')
+  const { error: updateError } = await coverageOrg
     .update({ remaining: newRemaining })
     .eq('id', transaction.coverageId);
 
@@ -350,8 +336,8 @@ export const saveCoverageTransaction = async (transaction: Omit<CoverageTransact
 };
 
 export const getCoverageTransactions = async (): Promise<CoverageTransaction[]> => {
-  const { data, error } = await supabase
-    .from('coverage_transactions')
+  const org = await createOrgQuery<CoverageTransaction>('coverage_transactions');
+  const { data, error } = await org
     .select(`
       *,
       coverages (
@@ -373,8 +359,8 @@ export const getCoverageTransactions = async (): Promise<CoverageTransaction[]> 
 };
 
 export const getAccounts = async (): Promise<Account[]> => {
-  const { data, error } = await supabase
-    .from('accounts')
+  const org = await createOrgQuery<Account>('accounts');
+  const { data, error } = await org
     .select('*')
     .order('created_at', { ascending: false });
 
@@ -387,8 +373,8 @@ export const getAccounts = async (): Promise<Account[]> => {
 };
 
 export const getCapitalEntries = async (): Promise<CapitalEntry[]> => {
-  const { data, error } = await supabase
-    .from('capital_entries')
+  const org = await createOrgQuery<CapitalEntry>('capital_entries');
+  const { data, error } = await org
     .select('*')
     .order('created_at', { ascending: false });
 
@@ -405,8 +391,8 @@ export const getCapitalEntries = async (): Promise<CapitalEntry[]> => {
 // CRUD operations
 export const deleteExpense = async (id: string) => {
   // الحصول على بيانات المصروف قبل الحذف
-  const { data: expense, error: getError } = await supabase
-    .from('expenses')
+  const org = await createOrgQuery<Expense>('expenses');
+  const { data: expense, error: getError } = await org
     .select('*')
     .eq('id', id)
     .single();
@@ -414,8 +400,7 @@ export const deleteExpense = async (id: string) => {
   if (getError) throw getError;
 
   // حذف المصروف
-  const { error } = await supabase
-    .from('expenses')
+  const { error } = await org
     .delete()
     .eq('id', id);
 
@@ -426,9 +411,7 @@ export const deleteExpense = async (id: string) => {
 };
 
 export const addPendingCustomer = async (customer: Omit<PendingCustomer, 'id' | 'payments'>) => {
-  const { data, error } = await supabase
-    .from('pending_customers')
-    .insert([{
+  const { data, error } = await orgInsert('pending_customers', [{
       name: customer.name,
       id_number: customer.idNumber,
       phone_number: customer.phoneNumber
@@ -441,8 +424,8 @@ export const addPendingCustomer = async (customer: Omit<PendingCustomer, 'id' | 
 };
 
 export const deletePendingCustomer = async (id: string) => {
-  const { error } = await supabase
-    .from('pending_customers')
+  const org = await createOrgQuery<PendingCustomer>('pending_customers');
+  const { error } = await org
     .delete()
     .eq('id', id);
 
@@ -450,9 +433,7 @@ export const deletePendingCustomer = async (id: string) => {
 };
 
 export const addPayment = async (payment: { customerId: string; amount: number; source: string }) => {
-  const { data, error } = await supabase
-    .from('payments')
-    .insert([{
+  const { data, error } = await orgInsert('payments', [{
       customer_id: payment.customerId,
       amount: payment.amount,
       source: payment.source
@@ -470,8 +451,8 @@ export const addPayment = async (payment: { customerId: string; amount: number; 
 
 export const deletePayment = async (id: string) => {
   // الحصول على بيانات الدفعة قبل الحذف
-  const { data: payment, error: getError } = await supabase
-    .from('payments')
+  const paymentsOrg = await createOrgQuery<any>('payments');
+  const { data: payment, error: getError } = await paymentsOrg
     .select('*')
     .eq('id', id)
     .single();
@@ -479,8 +460,7 @@ export const deletePayment = async (id: string) => {
   if (getError) throw getError;
 
   // حذف الدفعة
-  const { error } = await supabase
-    .from('payments')
+  const { error } = await paymentsOrg
     .delete()
     .eq('id', id);
 
@@ -491,9 +471,7 @@ export const deletePayment = async (id: string) => {
 };
 
 export const addCompletedCustomer = async (customer: Omit<CompletedCustomer, 'id'>) => {
-  const { data, error } = await supabase
-    .from('completed_customers')
-    .insert([{
+  const { data, error } = await orgInsert('completed_customers', [{
       name: customer.name,
       id_number: customer.idNumber,
       phone_number: customer.phoneNumber,
@@ -518,8 +496,8 @@ export const addCompletedCustomer = async (customer: Omit<CompletedCustomer, 'id
 
 export const deleteCompletedCustomer = async (id: string) => {
   // الحصول على بيانات العميل قبل الحذف
-  const { data: customer, error: getError } = await supabase
-    .from('completed_customers')
+  const completedOrg = await createOrgQuery<CompletedCustomer>('completed_customers');
+  const { data: customer, error: getError } = await completedOrg
     .select('*')
     .eq('id', id)
     .single();
@@ -527,8 +505,7 @@ export const deleteCompletedCustomer = async (id: string) => {
   if (getError) throw getError;
 
   // حذف العميل
-  const { error } = await supabase
-    .from('completed_customers')
+  const { error } = await completedOrg
     .delete()
     .eq('id', id);
 
@@ -544,8 +521,8 @@ export const addEmployee = async (employee: Omit<Employee, 'id'>) => {
 };
 
 export const deleteEmployee = async (id: string) => {
-  const { error } = await supabase
-    .from('employees')
+  const employeesOrg = await createOrgQuery<Employee>('employees');
+  const { error } = await employeesOrg
     .delete()
     .eq('id', id);
 
@@ -558,8 +535,8 @@ export const addEmployeeTransaction = async (transaction: Omit<EmployeeTransacti
 
 export const deleteEmployeeTransaction = async (id: string) => {
   // Get the transaction details before deleting
-  const { data: transaction, error: getError } = await supabase
-    .from('employee_transactions')
+  const employeeTransactionsOrg = await createOrgQuery<EmployeeTransaction>('employee_transactions');
+  const { data: transaction, error: getError } = await employeeTransactionsOrg
     .select('*')
     .eq('id', id)
     .single();
@@ -567,8 +544,8 @@ export const deleteEmployeeTransaction = async (id: string) => {
   if (getError) throw getError;
 
   // Get current employee data
-  const { data: employee, error: employeeError } = await supabase
-    .from('employees')
+  const employeeOrg2 = await createOrgQuery<Employee>('employees');
+  const { data: employee, error: employeeError } = await employeeOrg2
     .select('*')
     .eq('id', transaction.employee_id)
     .single();
@@ -602,8 +579,7 @@ export const deleteEmployeeTransaction = async (id: string) => {
   }
 
   // Update employee advances
-  const { error: updateError } = await supabase
-    .from('employees')
+  const { error: updateError } = await employeeOrg2
     .update({ advances: newAdvances })
     .eq('id', transaction.employee_id);
 
@@ -615,8 +591,7 @@ export const deleteEmployeeTransaction = async (id: string) => {
   }
 
   // Delete the transaction
-  const { error } = await supabase
-    .from('employee_transactions')
+  const { error } = await employeeTransactionsOrg
     .delete()
     .eq('id', id);
 
@@ -629,8 +604,8 @@ export const addCoverage = async (coverage: Omit<Coverage, 'id'>) => {
 
 export const deleteCoverage = async (id: string) => {
   // الحصول على بيانات التغطية قبل الحذف
-  const { data: coverage, error: getError } = await supabase
-    .from('coverages')
+  const coveragesOrg3 = await createOrgQuery<Coverage>('coverages');
+  const { data: coverage, error: getError } = await coveragesOrg3
     .select('*')
     .eq('id', id)
     .single();
@@ -638,8 +613,7 @@ export const deleteCoverage = async (id: string) => {
   if (getError) throw getError;
 
   // حذف التغطية
-  const { error } = await supabase
-    .from('coverages')
+  const { error } = await coveragesOrg3
     .delete()
     .eq('id', id);
 
@@ -655,8 +629,8 @@ export const addCoverageTransaction = async (transaction: Omit<CoverageTransacti
 
 export const deleteCoverageTransaction = async (id: string) => {
   // Get the transaction details before deleting
-  const { data: transaction, error: getError } = await supabase
-    .from('coverage_transactions')
+  const coverageTransactionsOrg = await createOrgQuery<CoverageTransaction>('coverage_transactions');
+  const { data: transaction, error: getError } = await coverageTransactionsOrg
     .select('*')
     .eq('id', id)
     .single();
@@ -664,8 +638,8 @@ export const deleteCoverageTransaction = async (id: string) => {
   if (getError) throw getError;
 
   // Get current coverage data
-  const { data: coverage, error: coverageError } = await supabase
-    .from('coverages')
+  const coverageOrg2 = await createOrgQuery<Coverage>('coverages');
+  const { data: coverage, error: coverageError } = await coverageOrg2
     .select('*')
     .eq('id', transaction.coverage_id)
     .single();
@@ -694,8 +668,7 @@ export const deleteCoverageTransaction = async (id: string) => {
   }
 
   // Update coverage remaining amount
-  const { error: updateError } = await supabase
-    .from('coverages')
+  const { error: updateError } = await coverageOrg2
     .update({ remaining: newRemaining })
     .eq('id', transaction.coverage_id);
 
@@ -707,8 +680,7 @@ export const deleteCoverageTransaction = async (id: string) => {
   }
 
   // Delete the transaction
-  const { error } = await supabase
-    .from('coverage_transactions')
+  const { error } = await coverageTransactionsOrg
     .delete()
     .eq('id', id);
 
@@ -716,9 +688,7 @@ export const deleteCoverageTransaction = async (id: string) => {
 };
 
 export const addAccount = async (account: Omit<Account, 'id'>) => {
-  const { data, error } = await supabase
-    .from('accounts')
-    .insert([{
+  const { data, error } = await orgInsert('accounts', [{
       name: account.name,
       balance: account.balance
     }])
@@ -730,8 +700,8 @@ export const addAccount = async (account: Omit<Account, 'id'>) => {
 };
 
 export const deleteAccount = async (id: string) => {
-  const { error } = await supabase
-    .from('accounts')
+  const org = await createOrgQuery<Account>('accounts');
+  const { error } = await org
     .delete()
     .eq('id', id);
 
@@ -739,9 +709,7 @@ export const deleteAccount = async (id: string) => {
 };
 
 export const addCapitalEntry = async (entry: Omit<CapitalEntry, 'id'>) => {
-  const { data, error } = await supabase
-    .from('capital_entries')
-    .insert([{
+  const { data, error } = await orgInsert('capital_entries', [{
       date: entry.date,
       amount: entry.amount,
       type: entry.type,
@@ -761,8 +729,8 @@ export const addCapitalEntry = async (entry: Omit<CapitalEntry, 'id'>) => {
 
 export const deleteCapitalEntry = async (id: string) => {
   // الحصول على بيانات الحركة قبل الحذف
-  const { data: entry, error: getError } = await supabase
-    .from('capital_entries')
+  const capitalOrg = await createOrgQuery<CapitalEntry>('capital_entries');
+  const { data: entry, error: getError } = await capitalOrg
     .select('*')
     .eq('id', id)
     .single();
@@ -770,8 +738,7 @@ export const deleteCapitalEntry = async (id: string) => {
   if (getError) throw getError;
 
   // حذف الحركة
-  const { error } = await supabase
-    .from('capital_entries')
+  const { error } = await capitalOrg
     .delete()
     .eq('id', id);
 

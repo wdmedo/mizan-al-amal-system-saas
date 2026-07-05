@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Users, Calendar, ArrowLeft, Search, CalendarIcon, Download, FileImage, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { createOrgQuery, orgInsert } from '@/services/tenant';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
@@ -111,8 +111,8 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
   const loadDailyVisits = async () => {
     setIsLoadingVisits(true);
     try {
-      const { data, error } = await supabase
-        .from('daily_visits')
+      const org = await createOrgQuery<DailyVisit>('daily_visits');
+      const { data, error } = await org
         .select('*')
         .order('date', { ascending: false });
 
@@ -133,8 +133,8 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
   const loadCustomerFollowUps = async () => {
     setIsLoadingFollowUps(true);
     try {
-      const { data, error } = await supabase
-        .from('customer_followups')
+      const org = await createOrgQuery<CustomerFollowUp>('customer_followups');
+      const { data, error } = await org
         .select('*')
         .order('follow_date', { ascending: false });
 
@@ -249,9 +249,7 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
         const insertData = newVisits.map(({ id, ...visit }) => visit);
         console.log('Inserting data:', insertData);
         
-        const { data, error: insertError } = await supabase
-          .from('daily_visits')
-          .insert(insertData)
+        const { data, error: insertError } = await orgInsert('daily_visits', insertData)
           .select();
         
         if (insertError) {
@@ -267,8 +265,8 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
         const { id, ...visitData } = visit;
         console.log('Updating visit with id:', id, 'data:', visitData);
         
-        const { error: updateError } = await supabase
-          .from('daily_visits')
+        const org = await createOrgQuery<DailyVisit>('daily_visits');
+        const { error: updateError } = await org
           .update(visitData)
           .eq('id', id);
         
@@ -316,9 +314,7 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
 
       // Insert new follow-ups
       if (newFollowUps.length > 0) {
-        const { error: insertError } = await supabase
-          .from('customer_followups')
-          .insert(newFollowUps.map(({ id, ...followUp }) => followUp));
+        const { error: insertError } = await orgInsert('customer_followups', newFollowUps.map(({ id, ...followUp }) => followUp));
         
         if (insertError) throw insertError;
       }
@@ -326,8 +322,8 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
       // Update existing follow-ups
       for (const followUp of existingFollowUps) {
         const { id, ...followUpData } = followUp;
-        const { error: updateError } = await supabase
-          .from('customer_followups')
+        const org = await createOrgQuery<CustomerFollowUp>('customer_followups');
+        const { error: updateError } = await org
           .update(followUpData)
           .eq('id', id);
         

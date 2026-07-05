@@ -18,7 +18,7 @@ interface LayoutProps {
 
 const Layout = ({ children, activeSection, onSectionChange }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { username, logout } = useAuth();
+  const { username, companyName, logout } = useAuth();
 
   const menuItems = [
     { id: 'dashboard', label: 'لوحة التحكم', icon: Home },
@@ -95,18 +95,21 @@ const Layout = ({ children, activeSection, onSectionChange }: LayoutProps) => {
             </h1>
           </div>
           
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex flex-col items-end gap-1 shrink-0 text-right">
             <span className="text-xs text-gray-600 hidden xs:inline max-w-20 truncate">مرحباً، {username}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={logout}
-              className="flex items-center gap-1 p-2 text-xs"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden xs:inline">خروج</span>
-            </Button>
+            {companyName ? (
+              <span className="text-[10px] text-slate-500 hidden sm:inline max-w-24 truncate">{companyName}</span>
+            ) : null}
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={logout}
+            className="flex items-center gap-1 p-2 text-xs"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden xs:inline">خروج</span>
+          </Button>
         </div>
 
         {/* Mobile Current Section Indicator */}

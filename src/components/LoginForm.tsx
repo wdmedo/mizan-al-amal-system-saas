@@ -18,6 +18,7 @@ const LoginForm = ({ onSolverAccess, onVisitsAccess }: LoginFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -47,7 +48,7 @@ const LoginForm = ({ onSolverAccess, onVisitsAccess }: LoginFormProps) => {
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
-        data: { full_name: fullName },
+        data: { full_name: fullName, company_name: companyName },
       },
     });
     setIsLoading(false);
@@ -136,6 +137,15 @@ const LoginForm = ({ onSolverAccess, onVisitsAccess }: LoginFormProps) => {
                   </Label>
                   <Input id="fullName" type="text" value={fullName} onChange={(e) => setFullName(e.target.value)}
                     placeholder="اسمك الكامل" required
+                    className="text-right bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-cyan-400 focus:ring-cyan-400/20 h-11 sm:h-12 text-base" />
+                </div>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="companyName" className="text-gray-200 flex items-center gap-2 text-xs sm:text-sm font-medium">
+                    <Calculator className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-cyan-400" />
+                    اسم الشركة / المؤسسة
+                  </Label>
+                  <Input id="companyName" type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="اسم الشركة" required
                     className="text-right bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-cyan-400 focus:ring-cyan-400/20 h-11 sm:h-12 text-base" />
                 </div>
                 <div className="space-y-1.5 sm:space-y-2">

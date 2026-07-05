@@ -1,4 +1,4 @@
--- Create employee_transactions table
+﻿-- Create employee_transactions table
 CREATE TABLE public.employee_transactions (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   employee_id UUID NOT NULL REFERENCES public.employees(id) ON DELETE CASCADE,
@@ -47,12 +47,21 @@ ALTER TABLE public.employee_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coverage_transactions ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policies for authenticated users
+DROP POLICY IF EXISTS "Authenticated can select employee_transactions" ON public.employee_transactions;
 CREATE POLICY "Authenticated can select employee_transactions" ON public.employee_transactions FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Authenticated can insert employee_transactions" ON public.employee_transactions;
 CREATE POLICY "Authenticated can insert employee_transactions" ON public.employee_transactions FOR INSERT TO authenticated WITH CHECK (true);
+DROP POLICY IF EXISTS "Authenticated can update employee_transactions" ON public.employee_transactions;
 CREATE POLICY "Authenticated can update employee_transactions" ON public.employee_transactions FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Authenticated can delete employee_transactions" ON public.employee_transactions;
 CREATE POLICY "Authenticated can delete employee_transactions" ON public.employee_transactions FOR DELETE TO authenticated USING (true);
 
+DROP POLICY IF EXISTS "Authenticated can select coverage_transactions" ON public.coverage_transactions;
 CREATE POLICY "Authenticated can select coverage_transactions" ON public.coverage_transactions FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Authenticated can insert coverage_transactions" ON public.coverage_transactions;
 CREATE POLICY "Authenticated can insert coverage_transactions" ON public.coverage_transactions FOR INSERT TO authenticated WITH CHECK (true);
+DROP POLICY IF EXISTS "Authenticated can update coverage_transactions" ON public.coverage_transactions;
 CREATE POLICY "Authenticated can update coverage_transactions" ON public.coverage_transactions FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Authenticated can delete coverage_transactions" ON public.coverage_transactions;
 CREATE POLICY "Authenticated can delete coverage_transactions" ON public.coverage_transactions FOR DELETE TO authenticated USING (true);
+
