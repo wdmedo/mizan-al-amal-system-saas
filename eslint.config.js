@@ -20,7 +20,8 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": "off",
-      "react-hooks/exhaustive-deps": "off",
+      // keep the rule enabled to encourage stable hook dependencies
+      "react-hooks/exhaustive-deps": "warn",
       "@typescript-eslint/no-unused-vars": "off",
     },
   }

@@ -65,50 +65,50 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
   useEffect(() => {
     loadDailyVisits();
     loadCustomerFollowUps();
-  }, []);
+  }, [loadDailyVisits, loadCustomerFollowUps]);
 
   // Filter data when search term or date changes
   useEffect(() => {
     filterDailyVisits();
-  }, [searchTerm, searchDate, dailyVisits]);
+  }, [filterDailyVisits]);
 
   useEffect(() => {
     filterCustomerFollowUps();
-  }, [searchTerm, customerFollowUps]);
+  }, [filterCustomerFollowUps]);
 
-  const filterDailyVisits = () => {
+  const filterDailyVisits = React.useCallback(() => {
     let filtered = dailyVisits;
-    
+
     if (searchTerm) {
-      filtered = filtered.filter(visit => 
+      filtered = filtered.filter(visit =>
         visit.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         visit.customer_phone.includes(searchTerm) ||
         visit.mediator.toLowerCase().includes(searchTerm.toLowerCase()) ||
         visit.bank.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     if (searchDate) {
       const formattedDate = format(searchDate, 'yyyy-MM-dd');
       filtered = filtered.filter(visit => visit.date === formattedDate);
     }
-    
-    setFilteredDailyVisits(filtered);
-  };
 
-  const filterCustomerFollowUps = () => {
+    setFilteredDailyVisits(filtered);
+  }, [dailyVisits, searchTerm, searchDate]);
+
+  const filterCustomerFollowUps = React.useCallback(() => {
     let filtered = customerFollowUps;
-    
+
     if (searchTerm) {
-      filtered = filtered.filter(followUp => 
+      filtered = filtered.filter(followUp =>
         followUp.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
-    setFilteredCustomerFollowUps(filtered);
-  };
 
-  const loadDailyVisits = async () => {
+    setFilteredCustomerFollowUps(filtered);
+  }, [customerFollowUps, searchTerm]);
+
+  const loadDailyVisits = React.useCallback(async () => {
     setIsLoadingVisits(true);
     try {
       const org = await createOrgQuery<DailyVisit>('daily_visits');
@@ -128,9 +128,9 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
     } finally {
       setIsLoadingVisits(false);
     }
-  };
+  }, [toast]);
 
-  const loadCustomerFollowUps = async () => {
+  const loadCustomerFollowUps = React.useCallback(async () => {
     setIsLoadingFollowUps(true);
     try {
       const org = await createOrgQuery<CustomerFollowUp>('customer_followups');
@@ -150,7 +150,7 @@ const VisitsAndCustomers = ({ onBack }: VisitsAndCustomersProps) => {
     } finally {
       setIsLoadingFollowUps(false);
     }
-  };
+  }, [toast]);
 
   const addDailyVisitRow = () => {
     const newVisit: DailyVisit = {
