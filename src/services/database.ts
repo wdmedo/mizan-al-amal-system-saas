@@ -58,7 +58,7 @@ export const getPendingCustomers = async (): Promise<PendingCustomer[]> => {
     name: customer.name,
     idNumber: customer.id_number,
     phoneNumber: customer.phone_number,
-    payments: customer.payments?.map((payment: any) => ({
+    payments: customer.payments?.map((payment: { id: string; amount: number; source: string }) => ({
       id: payment.id,
       amount: payment.amount,
       source: payment.source
@@ -152,7 +152,7 @@ export const getCoverages = async (): Promise<Coverage[]> => {
 const updateBankBalance = async (amount: number, description: string) => {
   // البحث عن حساب البنك الرئيسي أو إنشاؤه إذا لم يكن موجوداً
   const org = await createOrgQuery<Account>('accounts');
-  let { data: bankAccount, error: getBankError } = await org
+  const { data: bankAccount, error: getBankError } = await org
     .select('*')
     .eq('name', 'حساب البنك الرئيسي')
     .single();
@@ -451,7 +451,7 @@ export const addPayment = async (payment: { customerId: string; amount: number; 
 
 export const deletePayment = async (id: string) => {
   // الحصول على بيانات الدفعة قبل الحذف
-  const paymentsOrg = await createOrgQuery<any>('payments');
+  const paymentsOrg = await createOrgQuery<{ id: string; amount: number; source: string }>('payments');
   const { data: payment, error: getError } = await paymentsOrg
     .select('*')
     .eq('id', id)
