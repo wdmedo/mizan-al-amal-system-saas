@@ -298,7 +298,7 @@ const CoveragesSection = () => {
                 
                 <div>
                   <Label htmlFor="transaction-type" className="text-sm font-medium">نوع المعاملة *</Label>
-                  <Select value={newTransaction.type} onValueChange={(value) => setNewTransaction({ ...newTransaction, type: value as any })}>
+                  <Select value={newTransaction.type} onValueChange={(value) => setNewTransaction({ ...newTransaction, type: value as 'payment' | 'adjustment' | 'refund' })}>
                     <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>

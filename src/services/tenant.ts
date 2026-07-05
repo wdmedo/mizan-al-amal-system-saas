@@ -42,14 +42,14 @@ export const getOrganizationId = async (): Promise<string> => {
   return cachedOrganizationId;
 };
 
-export const queryOrg = async <T = any>(table: string) => {
+export const queryOrg = async <T = unknown>(table: string) => {
   const organizationId = await getOrganizationId();
   return supabase.from<T>(table).eq('organization_id', organizationId);
 };
 
 export const createOrgQuery = queryOrg;
 
-export const orgInsert = async <T = any, R = any>(table: string, rows: T[]) => {
+export const orgInsert = async <T = unknown, R = unknown>(table: string, rows: T[]) => {
   const organizationId = await getOrganizationId();
   const rowsWithOrg = rows.map(row => ({ ...row, organization_id: organizationId }));
   return supabase.from<R>(table).insert(rowsWithOrg);

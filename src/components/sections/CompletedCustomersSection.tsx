@@ -21,10 +21,10 @@ const CompletedCustomersSection = () => {
     productDifference: ''
   });
 
-  const calculateNetProfit = (customer: any) => {
-    const fixedInterest = parseFloat(customer.fixedInterest) || 0;
-    const brokerInterest = parseFloat(customer.brokerInterest) || 0;
-    const productDifference = parseFloat(customer.productDifference) || 0;
+  const calculateNetProfit = (customer: { fixedInterest?: string; brokerInterest?: string; productDifference?: string }) => {
+    const fixedInterest = parseFloat(customer.fixedInterest || '') || 0;
+    const brokerInterest = parseFloat(customer.brokerInterest || '') || 0;
+    const productDifference = parseFloat(customer.productDifference || '') || 0;
     
     // صافي الربح = الفائدة الثابتة - فائدة الوسيط - فرق السلعة
     return fixedInterest - brokerInterest - productDifference;

@@ -305,37 +305,37 @@ export const useAccountingData = () => {
   return {
     data,
     // Expense functions
-    addExpense: (expense: any) => addExpenseMutation.mutate(expense),
+    addExpense: (expense: Omit<import('@/types/accounting').Expense, 'id'>) => addExpenseMutation.mutate(expense),
     deleteExpense: (id: string) => deleteExpenseMutation.mutate(id),
     
     // Pending customer functions
-    addPendingCustomer: (customer: any) => addPendingCustomerMutation.mutate(customer),
+    addPendingCustomer: (customer: Omit<import('@/types/accounting').PendingCustomer, 'id' | 'payments'>) => addPendingCustomerMutation.mutate(customer),
     deletePendingCustomer: (id: string) => deletePendingCustomerMutation.mutate(id),
-    addPayment: (payment: any) => addPaymentMutation.mutate(payment),
+    addPayment: (payment: { customerId: string; amount: number; source: string }) => addPaymentMutation.mutate(payment),
     deletePayment: (id: string) => deletePaymentMutation.mutate(id),
     
     // Completed customer functions
-    addCompletedCustomer: (customer: any) => addCompletedCustomerMutation.mutate(customer),
+    addCompletedCustomer: (customer: Omit<import('@/types/accounting').CompletedCustomer, 'id'>) => addCompletedCustomerMutation.mutate(customer),
     deleteCompletedCustomer: (id: string) => deleteCompletedCustomerMutation.mutate(id),
     
     // Employee functions
-    addEmployee: (employee: any) => addEmployeeMutation.mutate(employee),
+    addEmployee: (employee: Omit<import('@/types/accounting').Employee, 'id'>) => addEmployeeMutation.mutate(employee),
     deleteEmployee: (id: string) => deleteEmployeeMutation.mutate(id),
-    addEmployeeTransaction: (transaction: any) => addEmployeeTransactionMutation.mutate(transaction),
+    addEmployeeTransaction: (transaction: Omit<import('@/types/accounting').EmployeeTransaction, 'id'>) => addEmployeeTransactionMutation.mutate(transaction),
     deleteEmployeeTransaction: (id: string) => deleteEmployeeTransactionMutation.mutate(id),
     
     // Coverage functions
-    addCoverage: (coverage: any) => addCoverageMutation.mutate(coverage),
+    addCoverage: (coverage: Omit<import('@/types/accounting').Coverage, 'id'>) => addCoverageMutation.mutate(coverage),
     deleteCoverage: (id: string) => deleteCoverageMutation.mutate(id),
-    addCoverageTransaction: (transaction: any) => addCoverageTransactionMutation.mutate(transaction),
+    addCoverageTransaction: (transaction: Omit<import('@/types/accounting').CoverageTransaction, 'id'>) => addCoverageTransactionMutation.mutate(transaction),
     deleteCoverageTransaction: (id: string) => deleteCoverageTransactionMutation.mutate(id),
     
     // Account functions
-    addAccount: (account: any) => addAccountMutation.mutate(account),
+    addAccount: (account: Omit<import('@/types/accounting').Account, 'id'>) => addAccountMutation.mutate(account),
     deleteAccount: (id: string) => deleteAccountMutation.mutate(id),
     
     // Capital entry functions
-    addCapitalEntry: (entry: any) => addCapitalEntryMutation.mutate(entry),
+    addCapitalEntry: (entry: Omit<import('@/types/accounting').CapitalEntry, 'id'>) => addCapitalEntryMutation.mutate(entry),
     deleteCapitalEntry: (id: string) => deleteCapitalEntryMutation.mutate(id)
   };
 };

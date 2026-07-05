@@ -183,7 +183,7 @@ const CapitalOverYearSection = () => {
             <div className="mb-6">
               <h4 className="text-lg font-semibold mb-4">الملخص الشهري</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.entries(monthlyData).map(([month, data]: [string, any]) => (
+                {Object.entries(monthlyData).map(([month, data]: [string, { increases: number; decreases: number; net: number }]) => (
                   <Card key={month} className="bg-gray-50">
                     <CardContent className="p-4">
                       <div className="text-center">

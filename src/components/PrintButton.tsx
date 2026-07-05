@@ -104,7 +104,7 @@ const PrintButton = ({ printableElementId, className, showImageExport = true }: 
                 
                 // Apply proper styles to all text elements
                 const textElements = clonedElement.querySelectorAll('*');
-                textElements.forEach((el: any) => {
+                textElements.forEach((el: HTMLElement) => {
                   const computedStyle = window.getComputedStyle(el);
                   
                   // Only apply RTL styles to elements with Arabic content or that should be RTL

@@ -199,7 +199,7 @@ const EmployeesSection = () => {
                 </div>
                 <div>
                   <Label htmlFor="transaction-type" className="text-sm">نوع المعاملة *</Label>
-                  <Select value={newTransaction.type} onValueChange={(value) => setNewTransaction({ ...newTransaction, type: value as any })}>
+                  <Select value={newTransaction.type} onValueChange={(value) => setNewTransaction({ ...newTransaction, type: value as 'advance' | 'salary_payment' | 'deduction' | 'bonus' })}>
                     <SelectTrigger className="text-sm">
                       <SelectValue />
                     </SelectTrigger>
