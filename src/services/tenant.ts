@@ -49,8 +49,37 @@ export const queryOrg = async <T = unknown>(table: string) => {
 
 export const createOrgQuery = queryOrg;
 
-export const orgInsert = async <T = unknown, R = unknown>(table: string, rows: T[]) => {
-  const organizationId = await getOrganizationId();
-  const rowsWithOrg = rows.map(row => ({ ...row, organization_id: organizationId }));
-  return supabase.from<R>(table).insert(rowsWithOrg);
+export const orgInsert = <T = unknown, R = unknown>(table: string, rows: T[]) => {
+  // Return a thenable object so callers can either `await orgInsert(...)`
+  // or chain `.select()` / `.single()` before awaiting.
+  const makeInsert = async (selectArg?: string | null, single = false) => {
+    const organizationId = await getOrganizationId();
+    const rowsWithOrg = rows.map(row => ({ ...row, organization_id: organizationId }));
+    const builder = supabase.from<R>(table).insert(rowsWithOrg);
+
+    if (selectArg !== undefined) {
+      return builder.select(selectArg);
+    }
+
+    if (single) {
+      return builder.select().single();
+    }
+
+    // default: return inserted rows
+    return builder.select();
+  };
+
+  const api: {
+    select: (columns?: string) => Promise<unknown>;
+    single: () => Promise<unknown>;
+    then: (onFulfilled?: (value: unknown) => unknown, onRejected?: (reason: unknown) => unknown) => Promise<unknown>;
+  } = {
+    select: (columns?: string) => makeInsert(columns ?? undefined),
+    single: () => makeInsert(undefined, true),
+    then: (onFulfilled?: (value: unknown) => unknown, onRejected?: (reason: unknown) => unknown) => {
+      return makeInsert().then(onFulfilled, onRejected);
+    }
+  };
+
+  return api;
 };
