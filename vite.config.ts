@@ -25,10 +25,16 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('recharts')) return 'recharts';
-            return 'vendor';
-          }
+          if (!id.includes('node_modules')) return undefined;
+
+          if (id.includes('node_modules/react-dom')) return 'react-dom';
+          if (id.includes('node_modules/react')) return 'react';
+          if (id.includes('node_modules/recharts')) return 'recharts';
+          if (id.includes('node_modules/@supabase')) return 'supabase';
+          if (id.includes('node_modules/@tanstack')) return 'tanstack';
+          if (id.includes('node_modules/jspdf')) return 'jspdf';
+
+          return 'vendor';
         }
       }
     }
