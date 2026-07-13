@@ -64,6 +64,32 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/63e5dab4-9391-4db5-ae7d-e64aa6c29be9) and click on Share -> Publish.
 
+## Run locally (recommended)
+
+1) Create your env file:
+
+- Copy `.env.example` → `.env`
+- Fill `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`
+
+2) Install + start:
+
+```sh
+npm i
+npm run dev
+```
+
+3) Production build:
+
+```sh
+npm run build
+npm run preview
+```
+
+## Deployment notes (production)
+
+- Ensure your hosting environment provides the same VITE env vars at build time.
+- `src/integrations/supabase/client.ts` will throw a clear error if env vars are missing.
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!
@@ -71,3 +97,4 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+

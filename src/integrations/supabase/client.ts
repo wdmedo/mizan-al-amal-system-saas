@@ -5,10 +5,26 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
 }
+
+function assertEnv(): void {
+  const missing: string[] = [];
+  if (!SUPABASE_URL) missing.push('VITE_SUPABASE_URL');
+  if (!SUPABASE_PUBLISHABLE_KEY) missing.push('VITE_SUPABASE_PUBLISHABLE_KEY');
+
+  if (missing.length > 0) {
+    // Throw early so the user sees a clear error during dev.
+    throw new Error(
+      `Missing required environment variables for Supabase: ${missing.join(', ')}. ` +
+        `Create a .env file (see .env.example) and restart the dev server.`
+    );
+  }
+}
+
+assertEnv();
+
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
   return (input, init) => {

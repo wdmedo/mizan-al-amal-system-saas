@@ -12,20 +12,25 @@ import {
 } from '@/types/accounting';
 
 export const saveExpense = async (expense: Omit<Expense, 'id'>) => {
-  const { data, error } = await orgInsert('expenses', [{
-    description: expense.description,
-    amount: expense.amount,
-    date: expense.date
-  }])
-    .select()
-    .single();
+  try {
+    const { data, error } = await orgInsert('expenses', [{
+      description: expense.description,
+      amount: expense.amount,
+      date: expense.date
+    }])
+      .select()
+      .single();
 
-  if (error) throw error;
+    if (error) throw error;
 
-  // تحديث رصيد البنك الرئيسي (خصم المصروف)
-  await updateBankBalance(-expense.amount, 'مصروف: ' + expense.description);
+    // تحديث رصيد البنك الرئيسي (خصم المصروف)
+    await updateBankBalance(-expense.amount, 'مصروف: ' + expense.description);
 
-  return data;
+    return data;
+  } catch (error: any) {
+    console.error('Error saving expense:', error);
+    throw new Error(`Failed to save expense: ${error.message}`);
+  }
 };
 
 export const getExpenses = async (): Promise<Expense[]> => {
@@ -150,39 +155,49 @@ export const getCoverages = async (): Promise<Coverage[]> => {
 
 // دالة مساعدة لتحديث رصيد البنك الرئيسي
 const updateBankBalance = async (amount: number, description: string) => {
-  // البحث عن حساب البنك الرئيسي أو إنشاؤه إذا لم يكن موجوداً
-  const org = await createOrgQuery<Account>('accounts');
-  const { data: bankAccount, error: getBankError } = await org
-    .select('*')
-    .eq('name', 'حساب البنك الرئيسي')
-    .single();
-
-  if (getBankError && getBankError.code !== 'PGRST116') {
-    throw getBankError;
-  }
-
-  if (!bankAccount) {
-    // إنشاء حساب البنك الرئيسي إذا لم يكن موجوداً
-    const { data: newAccount, error: createError } = await orgInsert('accounts', [{
-      name: 'حساب البنك الرئيسي',
-      balance: amount
-    }])
-      .select()
+  try {
+    // البحث عن حساب البنك الرئيسي أو إنشاؤه إذا لم يكن موجوداً
+    const org = await createOrgQuery<Account>('accounts');
+    const { data: bankAccount, error: getBankError } = await org
+      .select('*')
+      .eq('name', 'حساب البنك الرئيسي')
       .single();
 
-    if (createError) throw createError;
-    return newAccount;
-  } else {
-    // تحديث الرصيد الحالي
-    const newBalance = bankAccount.balance + amount;
-const { error: updateError } = await org
-      .update({ balance: newBalance })
-      .eq('id', bankAccount.id);
+    if (getBankError && getBankError.code !== 'PGRST116') {
+      throw new Error(`Failed to fetch bank account: ${getBankError.message}`);
+    }
 
-    if (updateError) throw updateError;
-    
-    console.log(`تم تحديث رصيد البنك: ${amount} - ${description}`);
-    return { ...bankAccount, balance: newBalance };
+    if (!bankAccount) {
+      // إنشاء حساب البنك الرئيسي إذا لم يكن موجوداً
+      const { data: newAccount, error: createError } = await orgInsert('accounts', [{
+        name: 'حساب البنك الرئيسي',
+        balance: amount
+      }])
+        .select()
+        .single();
+
+      if (createError) {
+        throw new Error(`Failed to create bank account: ${createError.message}`);
+      }
+      console.log(`تم إنشاء حساب البنك الرئيسي برصيد: ${amount}`);
+      return newAccount;
+    } else {
+      // تحديث الرصيد الحالي
+      const newBalance = bankAccount.balance + amount;
+      const { error: updateError } = await org
+        .update({ balance: newBalance })
+        .eq('id', bankAccount.id);
+
+      if (updateError) {
+        throw new Error(`Failed to update bank balance: ${updateError.message}`);
+      }
+      
+      console.log(`تم تحديث رصيد البنك: ${amount} - ${description}`);
+      return { ...bankAccount, balance: newBalance };
+    }
+  } catch (error: any) {
+    console.error('Error in updateBankBalance:', error);
+    throw error;
   }
 };
 
@@ -604,8 +619,8 @@ export const addCoverage = async (coverage: Omit<Coverage, 'id'>) => {
 
 export const deleteCoverage = async (id: string) => {
   // الحصول على بيانات التغطية قبل الحذف
-  const coveragesOrg3 = await createOrgQuery<Coverage>('coverages');
-  const { data: coverage, error: getError } = await coveragesOrg3
+  const coveragesOrg = await createOrgQuery<Coverage>('coverages');
+  const { data: coverage, error: getError } = await coveragesOrg
     .select('*')
     .eq('id', id)
     .single();
@@ -613,7 +628,7 @@ export const deleteCoverage = async (id: string) => {
   if (getError) throw getError;
 
   // حذف التغطية
-  const { error } = await coveragesOrg3
+  const { error } = await coveragesOrg
     .delete()
     .eq('id', id);
 
