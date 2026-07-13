@@ -15,11 +15,23 @@ function assertEnv(): void {
   if (!SUPABASE_PUBLISHABLE_KEY) missing.push('VITE_SUPABASE_PUBLISHABLE_KEY');
 
   if (missing.length > 0) {
-    // Throw early so the user sees a clear error during dev.
-    throw new Error(
-      `Missing required environment variables for Supabase: ${missing.join(', ')}. ` +
-        `Create a .env file (see .env.example) and restart the dev server.`
-    );
+    // During development, fail fast so the developer notices missing env vars.
+    if (import.meta.env.DEV) {
+      throw new Error(
+        `Missing required environment variables for Supabase: ${missing.join(', ')}. ` +
+          `Create a .env file (see .env.example) and restart the dev server.`
+      );
+    }
+
+    // In production builds, warn at runtime instead of throwing during build.
+    // This avoids CI/build failures when deployment providers inject env vars
+    // at runtime or via their dashboard.
+    if (typeof console !== 'undefined') {
+      console.warn(
+        `Supabase env vars missing at build time: ${missing.join(', ')}. ` +
+          `Ensure your hosting provider sets VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY at build time.`
+      );
+    }
   }
 }
 
