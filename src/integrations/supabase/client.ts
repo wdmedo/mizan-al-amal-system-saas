@@ -2,11 +2,11 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_URL = String(import.meta.env.VITE_SUPABASE_URL ?? '');
+const SUPABASE_PUBLISHABLE_KEY = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? '');
 
 function isNewSupabaseApiKey(value: string): boolean {
-  return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
+  return typeof value === 'string' && (value.startsWith('sb_publishable_') || value.startsWith('sb_secret_'));
 }
 
 function assertEnv(): void {
@@ -66,7 +66,12 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
   },
   auth: {
-    storage: localStorage,
+    // Only use `localStorage` when running in a browser environment.
+    // Some hosting/build environments execute code during build or SSR
+    // where `localStorage`/`window` is not available.
+    ...(typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+      ? { storage: window.localStorage }
+      : {}),
     persistSession: true,
     autoRefreshToken: true,
   }
