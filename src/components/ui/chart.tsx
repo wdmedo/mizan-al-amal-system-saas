@@ -1,5 +1,5 @@
 import * as React from "react"
-import * as RechartsPrimitive from "recharts"
+import { Suspense } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -36,9 +36,7 @@ const ChartContainer = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
     config: ChartConfig
-    children: React.ComponentProps<
-      typeof RechartsPrimitive.ResponsiveContainer
-    >["children"]
+    children: React.ReactNode
   }
 >(({ id, className, children, config, ...props }, ref) => {
   const uniqueId = React.useId()
@@ -56,9 +54,11 @@ const ChartContainer = React.forwardRef<
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
-        <RechartsPrimitive.ResponsiveContainer>
-          {children}
-        </RechartsPrimitive.ResponsiveContainer>
+        <Suspense fallback={<div className="w-full h-full" /> }>
+          <LazyResponsiveContainer>
+            {children}
+          </LazyResponsiveContainer>
+        </Suspense>
       </div>
     </ChartContext.Provider>
   )
@@ -98,11 +98,23 @@ ${colorConfig
   )
 }
 
-const ChartTooltip = RechartsPrimitive.Tooltip
+// Lazy-load specific Recharts components to avoid bundling the whole library upfront.
+const LazyResponsiveContainer = React.lazy(() =>
+  import("recharts").then((m) => ({ default: m.ResponsiveContainer }))
+)
+
+const LazyTooltip = React.lazy(() => import("recharts").then((m) => ({ default: m.Tooltip })))
+const LazyLegend = React.lazy(() => import("recharts").then((m) => ({ default: m.Legend })))
+
+const ChartTooltip = (props: any) => (
+  <Suspense fallback={null}>
+    <LazyTooltip {...props} />
+  </Suspense>
+)
 
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+  any &
     React.ComponentProps<"div"> & {
       hideLabel?: boolean
       hideIndicator?: boolean
@@ -254,12 +266,16 @@ const ChartTooltipContent = React.forwardRef<
 )
 ChartTooltipContent.displayName = "ChartTooltip"
 
-const ChartLegend = RechartsPrimitive.Legend
+const ChartLegend = (props: any) => (
+  <Suspense fallback={null}>
+    <LazyLegend {...props} />
+  </Suspense>
+)
 
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> &
-    Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
+    Pick<any, "payload" | "verticalAlign"> & {
       hideIcon?: boolean
       nameKey?: string
     }
