@@ -1,4 +1,4 @@
-﻿-- Create employee_transactions table
+-- Create employee_transactions table
 CREATE TABLE public.employee_transactions (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   employee_id UUID NOT NULL REFERENCES public.employees(id) ON DELETE CASCADE,

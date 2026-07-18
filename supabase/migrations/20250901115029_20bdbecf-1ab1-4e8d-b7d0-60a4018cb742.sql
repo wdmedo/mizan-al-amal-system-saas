@@ -1,4 +1,4 @@
-﻿-- 1) Enable RLS on remaining tables (skip ones that already have policies)
+-- 1) Enable RLS on remaining tables (skip ones that already have policies)
 ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.employees ENABLE ROW LEVEL SECURITY;
