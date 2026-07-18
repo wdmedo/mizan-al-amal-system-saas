@@ -1,6 +1,6 @@
 
 -- Expenses
-CREATE TABLE public.expenses (
+CREATE TABLE IF NOT EXISTS public.expenses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   date DATE NOT NULL,
   amount NUMERIC NOT NULL,
@@ -13,7 +13,7 @@ ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_all_expenses" ON public.expenses FOR ALL USING (true) WITH CHECK (true);
 
 -- Accounts
-CREATE TABLE public.accounts (
+CREATE TABLE IF NOT EXISTS public.accounts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   balance NUMERIC NOT NULL,
@@ -25,7 +25,7 @@ ALTER TABLE public.accounts ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_all_accounts" ON public.accounts FOR ALL USING (true) WITH CHECK (true);
 
 -- Employees
-CREATE TABLE public.employees (
+CREATE TABLE IF NOT EXISTS public.employees (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   salary NUMERIC NOT NULL,
@@ -38,7 +38,7 @@ ALTER TABLE public.employees ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_all_employees" ON public.employees FOR ALL USING (true) WITH CHECK (true);
 
 -- Employee transactions
-CREATE TABLE public.employee_transactions (
+CREATE TABLE IF NOT EXISTS public.employee_transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   employee_id UUID NOT NULL REFERENCES public.employees(id) ON DELETE CASCADE,
   type TEXT NOT NULL,
@@ -53,7 +53,7 @@ ALTER TABLE public.employee_transactions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_all_employee_transactions" ON public.employee_transactions FOR ALL USING (true) WITH CHECK (true);
 
 -- Coverages
-CREATE TABLE public.coverages (
+CREATE TABLE IF NOT EXISTS public.coverages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   amount NUMERIC NOT NULL,
   received_from TEXT NOT NULL,
@@ -67,7 +67,7 @@ ALTER TABLE public.coverages ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_all_coverages" ON public.coverages FOR ALL USING (true) WITH CHECK (true);
 
 -- Coverage transactions
-CREATE TABLE public.coverage_transactions (
+CREATE TABLE IF NOT EXISTS public.coverage_transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   coverage_id UUID NOT NULL REFERENCES public.coverages(id) ON DELETE CASCADE,
   type TEXT NOT NULL,
@@ -82,7 +82,7 @@ ALTER TABLE public.coverage_transactions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_all_coverage_transactions" ON public.coverage_transactions FOR ALL USING (true) WITH CHECK (true);
 
 -- Capital entries
-CREATE TABLE public.capital_entries (
+CREATE TABLE IF NOT EXISTS public.capital_entries (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   date DATE NOT NULL,
   amount NUMERIC NOT NULL,
@@ -96,7 +96,7 @@ ALTER TABLE public.capital_entries ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_all_capital_entries" ON public.capital_entries FOR ALL USING (true) WITH CHECK (true);
 
 -- Pending customers
-CREATE TABLE public.pending_customers (
+CREATE TABLE IF NOT EXISTS public.pending_customers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   id_number TEXT NOT NULL,
@@ -109,7 +109,7 @@ ALTER TABLE public.pending_customers ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_all_pending_customers" ON public.pending_customers FOR ALL USING (true) WITH CHECK (true);
 
 -- Payments
-CREATE TABLE public.payments (
+CREATE TABLE IF NOT EXISTS public.payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   customer_id UUID REFERENCES public.pending_customers(id) ON DELETE CASCADE,
   amount NUMERIC NOT NULL,
@@ -122,7 +122,7 @@ ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_all_payments" ON public.payments FOR ALL USING (true) WITH CHECK (true);
 
 -- Completed customers
-CREATE TABLE public.completed_customers (
+CREATE TABLE IF NOT EXISTS public.completed_customers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   id_number TEXT NOT NULL,
@@ -141,7 +141,7 @@ ALTER TABLE public.completed_customers ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_all_completed_customers" ON public.completed_customers FOR ALL USING (true) WITH CHECK (true);
 
 -- Daily visits
-CREATE TABLE public.daily_visits (
+CREATE TABLE IF NOT EXISTS public.daily_visits (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   day TEXT NOT NULL,
   date DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -160,7 +160,7 @@ ALTER TABLE public.daily_visits ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public_all_daily_visits" ON public.daily_visits FOR ALL USING (true) WITH CHECK (true);
 
 -- Customer followups
-CREATE TABLE public.customer_followups (
+CREATE TABLE IF NOT EXISTS public.customer_followups (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   customer_name TEXT NOT NULL,
   follow_date DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -189,8 +189,10 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS update_daily_visits_updated_at ON public.daily_visits;
 CREATE TRIGGER update_daily_visits_updated_at BEFORE UPDATE ON public.daily_visits
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_customer_followups_updated_at ON public.customer_followups;
 CREATE TRIGGER update_customer_followups_updated_at BEFORE UPDATE ON public.customer_followups
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();

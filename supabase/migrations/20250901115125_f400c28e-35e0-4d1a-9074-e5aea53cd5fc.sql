@@ -1,4 +1,4 @@
-﻿-- 1) Enable RLS on all public tables that handle business data
+-- 1) Enable RLS on all public tables that handle business data
 ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.employees ENABLE ROW LEVEL SECURITY;

@@ -2,13 +2,41 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
+const SUPABASE_URL = String(import.meta.env.VITE_SUPABASE_URL ?? '');
+const SUPABASE_PUBLISHABLE_KEY = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? '');
 
 function isNewSupabaseApiKey(value: string): boolean {
-  return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
+  return typeof value === 'string' && (value.startsWith('sb_publishable_') || value.startsWith('sb_secret_'));
 }
+
+function assertEnv(): void {
+  const missing: string[] = [];
+  if (!SUPABASE_URL) missing.push('VITE_SUPABASE_URL');
+  if (!SUPABASE_PUBLISHABLE_KEY) missing.push('VITE_SUPABASE_PUBLISHABLE_KEY');
+
+  if (missing.length > 0) {
+    // During development, fail fast so the developer notices missing env vars.
+    if (import.meta.env.DEV) {
+      throw new Error(
+        `Missing required environment variables for Supabase: ${missing.join(', ')}. ` +
+          `Create a .env file (see .env.example) and restart the dev server.`
+      );
+    }
+
+    // In production builds, warn at runtime instead of throwing during build.
+    // This avoids CI/build failures when deployment providers inject env vars
+    // at runtime or via their dashboard.
+    if (typeof console !== 'undefined') {
+      console.warn(
+        `Supabase env vars missing at build time: ${missing.join(', ')}. ` +
+          `Ensure your hosting provider sets VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY at build time.`
+      );
+    }
+  }
+}
+
+assertEnv();
+
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
   return (input, init) => {
@@ -38,7 +66,12 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
   },
   auth: {
-    storage: localStorage,
+    // Only use `localStorage` when running in a browser environment.
+    // Some hosting/build environments execute code during build or SSR
+    // where `localStorage`/`window` is not available.
+    ...(typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+      ? { storage: window.localStorage }
+      : {}),
     persistSession: true,
     autoRefreshToken: true,
   }

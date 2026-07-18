@@ -73,8 +73,9 @@ export const useAccountingData = () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       toast({ title: "تمت إضافة المصروف بنجاح" });
     },
-    onError: () => {
-      toast({ title: "خطأ في إضافة المصروف", variant: "destructive" });
+    onError: (error: any) => {
+      console.error('Error adding expense:', error);
+      toast({ title: "خطأ في إضافة المصروف", description: error?.message || "فشل العملية", variant: "destructive" });
     }
   });
 
@@ -96,8 +97,9 @@ export const useAccountingData = () => {
       queryClient.invalidateQueries({ queryKey: ['pending-customers'] });
       toast({ title: "تمت إضافة العميل بنجاح" });
     },
-    onError: () => {
-      toast({ title: "خطأ في إضافة العميل", variant: "destructive" });
+    onError: (error: any) => {
+      console.error('Error adding pending customer:', error);
+      toast({ title: "خطأ في إضافة العميل", description: error?.message || "فشل العملية", variant: "destructive" });
     }
   });
 
@@ -117,10 +119,12 @@ export const useAccountingData = () => {
     mutationFn: db.addPayment,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-customers'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
       toast({ title: "تمت إضافة الدفعة بنجاح" });
     },
-    onError: () => {
-      toast({ title: "خطأ في إضافة الدفعة", variant: "destructive" });
+    onError: (error: any) => {
+      console.error('Error adding payment:', error);
+      toast({ title: "خطأ في إضافة الدفعة", description: error?.message || "فشل العملية", variant: "destructive" });
     }
   });
 
@@ -140,10 +144,12 @@ export const useAccountingData = () => {
     mutationFn: db.addCompletedCustomer,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['completed-customers'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
       toast({ title: "تمت إضافة العميل الخالص بنجاح" });
     },
-    onError: () => {
-      toast({ title: "خطأ في إضافة العميل الخالص", variant: "destructive" });
+    onError: (error: any) => {
+      console.error('Error adding completed customer:', error);
+      toast({ title: "خطأ في إضافة العميل الخالص", description: error?.message || "فشل العملية", variant: "destructive" });
     }
   });
 
@@ -211,10 +217,12 @@ export const useAccountingData = () => {
     mutationFn: db.addCoverage,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coverages'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
       toast({ title: "تمت إضافة التغطية بنجاح" });
     },
-    onError: () => {
-      toast({ title: "خطأ في إضافة التغطية", variant: "destructive" });
+    onError: (error: any) => {
+      console.error('Error adding coverage:', error);
+      toast({ title: "خطأ في إضافة التغطية", description: error?.message || "فشل العملية", variant: "destructive" });
     }
   });
 
@@ -285,8 +293,9 @@ export const useAccountingData = () => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       toast({ title: "تمت إضافة حركة رأس المال وتحديث حساب البنك بنجاح" });
     },
-    onError: () => {
-      toast({ title: "خطأ في إضافة حركة رأس المال", variant: "destructive" });
+    onError: (error: any) => {
+      console.error('Error adding capital entry:', error);
+      toast({ title: "خطأ في إضافة حركة رأس المال", description: error?.message || "فشل العملية", variant: "destructive" });
     }
   });
 
